@@ -1,10 +1,17 @@
 #include <iostream>
 #include "PerfEvent.hpp"
 #include "CSVWriter.h"
-
+#include "Counter.hpp"
 //sysctl -w kernel.perf_event_paranoid=-1
 //g++ test.cpp ; ./a.out ; rm a.out;
 
+
+int main(){
+
+    Counter c;
+}
+
+/*
 int main(){
     int a = 7;
     int n = 10000;
@@ -21,4 +28,4 @@ int main(){
     csv.newRow() << "this" << "is" << "the" << "second" << "row";
     csv.writeToFile("foobar.csv");
     return 0;
-}
+}*/

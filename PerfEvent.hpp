@@ -41,6 +41,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#define LOG(x) std::cout << x << std::endl 
+
 struct PerfEvent {
 
    struct event {
@@ -58,6 +60,7 @@ struct PerfEvent {
 
       double readCounter() {
          double multiplexingCorrection = static_cast<double>(data.time_enabled - prev.time_enabled) / static_cast<double>(data.time_running - prev.time_running);
+         LOG(data.value - prev.value);
          return static_cast<double>(data.value - prev.value) * multiplexingCorrection;
       }
    };
