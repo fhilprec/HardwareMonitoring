@@ -7,8 +7,17 @@
 
 
 int main(){
+    Device a;
+    Device b;
 
-    Counter c;
+
+    Output out;
+    out.csv = true;
+
+    Counter c(a,b, out);
+    c.start()
+    /*CODE*/
+    c.stop()
 }
 
 /*
