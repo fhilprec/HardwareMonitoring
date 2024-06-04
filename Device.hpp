@@ -18,5 +18,5 @@ class Device {
         virtual double fetchMetric(Metric metric) = 0;
 
     private:
-        std::vector<Metric> allowed_metrics;
+        std::vector<Metric> allowedMetrics;
 };   
