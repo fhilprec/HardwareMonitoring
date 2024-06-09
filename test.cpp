@@ -1,10 +1,8 @@
 #include <iostream>
 #include "PerfEvent.hpp"
-#include "CSVWriter.h"
 #include "Device.hpp"
 //sysctl -w kernel.perf_event_paranoid=-1
 //g++ test.cpp ; ./a.out ; rm a.out;
-
 
 int main(){
     CPUPerf cpu;
