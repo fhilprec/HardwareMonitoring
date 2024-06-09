@@ -55,8 +55,8 @@ public:
 
     double fetchMetric(Metric metric) override {
         if (metric.name == "cycles") {
-            return syscall(__NR_perf_event_open, PERF_COUNT_HW_CPU_CYCLES, 0, -1, -1, 0);
-        }
+            return syscall(__NR_perf_event_open, 0, 0, -1, -1, 0);
+        } 
         if (metric.name == "instructions") {
             return syscall(__NR_perf_event_open, PERF_COUNT_HW_INSTRUCTIONS, 0, -1, -1, 0);
         }
