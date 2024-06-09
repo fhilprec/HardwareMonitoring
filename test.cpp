@@ -1,23 +1,21 @@
 #include <iostream>
 #include "PerfEvent.hpp"
 #include "CSVWriter.h"
-#include "Counter.hpp"
+#include "Device.hpp"
 //sysctl -w kernel.perf_event_paranoid=-1
 //g++ test.cpp ; ./a.out ; rm a.out;
 
 
 int main(){
-    Device a;
-    Device b;
+    CPUPerf cpu;
+    cpu.printVector(cpu.getData());
+    int i = 0;
+    for (int i = 0; i < 100; i++) {
+        i = i + 1;
+        i = i * i;
+    }
+    cpu.printVector(cpu.getData());
 
-
-    Output out;
-    out.csv = true;
-
-    Counter c(a,b, out);
-    c.start()
-    /*CODE*/
-    c.stop()
 }
 
 /*
@@ -29,7 +27,7 @@ int main(){
     for (int i=0; i<n; i++) // this code will be measured
     a = a * a;
     e.stopCounters();
-    e.printReport(std::cout, n); // use n as scale factor
+    e.printReport(std::cout, n); / / use n as scale factor
     std::cout << std::endl;
 
     CSVWriter csv;

@@ -102,6 +102,15 @@
     "vector": "cpp",
     "iomanip": "cpp",
     "optional": "cpp",
-    "ratio": "cpp"
+    "ratio": "cpp",
+    "bit": "cpp",
+    "cstdarg": "cpp",
+    "deque": "cpp",
+    "map": "cpp",
+    "iterator": "cpp",
+    "netfwd": "cpp",
+    "numeric": "cpp",
+    "numbers": "cpp",
+    "cinttypes": "cpp"
   }
 }
