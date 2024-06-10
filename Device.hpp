@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <linux/perf_event.h>
+#include <sys/syscall.h>
 
 
 
@@ -54,11 +56,16 @@ public:
 
     double fetchMetric(Metric metric) override {
         if (metric.name == "cycles") {
-            return syscall(__NR_perf_event_open, 0, 0, -1, -1, 0);
-        } 
+        return syscall(SYS_perf_event_open, nullptr, -1, -1, -1, 0);
+    }
         if (metric.name == "instructions") {
-            return syscall(__NR_perf_event_open, PERF_COUNT_HW_INSTRUCTIONS, 0, -1, -1, 0);
-        }
-        return 0;
+            struct perf_event_attr pe = {
+                PERF_TYPE_HARDWARE,
+                PERF_COUNT_HW_INSTRUCTIONS,
+                sizeof(struct perf_event_attr),
+            };
+        return syscall(SYS_perf_event_open, &pe, -1, -1, -1, 0);
+    }
+    return 0;
     }
 };
