@@ -43,7 +43,6 @@ public:
         
     }
 
-    //write a print for a std::vector<std::pair<Metric, double>>
     void printVector(const std::vector<std::pair<Metric, double>>& vector) {
     for (const auto& pair : vector) {
         std::cout << "Metric: " << pair.first.name << ", Value: " << pair.second << std::endl;
