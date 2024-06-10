@@ -70,14 +70,31 @@ public:
 
     double fetchMetric(Metric metric) override {
         if (metric.name == "cycles") {
-        return syscall(SYS_perf_event_open, nullptr, -1, -1, -1, 0);
+        struct perf_event_attr pe;
+            memset(&pe, 0, sizeof(struct perf_event_attr));
+            pe.type = static_cast<uint32_t>(PERF_TYPE_HARDWARE);
+            pe.size = sizeof(struct perf_event_attr);
+            pe.config = PERF_COUNT_HW_CPU_CYCLES;
+            pe.disabled = true;
+            pe.inherit = 1;
+            pe.inherit_stat = 0;
+            pe.exclude_user = !(0b111 & 0b1);
+            pe.exclude_kernel = !(0b111 & 0b10);
+            pe.exclude_hv = !(0b111 & 0b100);
+            pe.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
+            auto ans =syscall(__NR_perf_event_open, &pe, 0, -1, -1, 0);
+            //also read our errno
+            if (errno != 0) {
+                std::cerr << "Error opening perf event: " << errno << std::endl;
+            }
+            return ans;
     }
         if (metric.name == "instructions") {
             struct perf_event_attr pe;
             memset(&pe, 0, sizeof(struct perf_event_attr));
-            pe.type = static_cast<uint32_t>(PERF_COUNT_HW_INSTRUCTIONS);
+            pe.type = static_cast<uint32_t>(PERF_TYPE_HARDWARE);
             pe.size = sizeof(struct perf_event_attr);
-            pe.config = PERF_COUNT_HW_CPU_CYCLES;
+            pe.config = PERF_COUNT_HW_INSTRUCTIONS;
             pe.disabled = true;
             pe.inherit = 1;
             pe.inherit_stat = 0;
