@@ -1,11 +1,14 @@
 #include <iostream>
 #include "PerfEvent.hpp"
 #include "Device.hpp"
+#include "PerfEvent.hpp"
 //sysctl -w kernel.perf_event_paranoid=-1
 //g++ test.cpp ; ./a.out ; rm a.out;
 
 int main(){
     CPUPerf cpu;
+    PerfEvent p;
+    p.startCounters();
     cpu.printVector(cpu.getData());
     int i = 0;
     for (int i = 0; i < 100; i++) {
@@ -13,6 +16,8 @@ int main(){
         i = i * i;
     }
     cpu.printVector(cpu.getData());
+    p.stopCounters();
+    p.printReport(std::cout, 100);
 
 }
 
