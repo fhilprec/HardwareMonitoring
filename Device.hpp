@@ -71,8 +71,9 @@ public:
             if (errno != 0) {
                 std::cerr << "Error opening perf event: " << errno << std::endl;
             }
-        return ans
+            return ans;
+        }
+        return 0;
     }
-    return 0;
-    }
-};
+    
+    };
