@@ -59,11 +59,13 @@ public:
         return syscall(SYS_perf_event_open, nullptr, -1, -1, -1, 0);
     }
         if (metric.name == "instructions") {
-            struct perf_event_attr pe = {
-                PERF_TYPE_HARDWARE,
-                PERF_COUNT_HW_INSTRUCTIONS,
-                sizeof(struct perf_event_attr),
-            };
+            struct perf_event_attr pe;
+            pe.type = PERF_TYPE_HARDWARE;
+            pe.config = PERF_COUNT_HW_INSTRUCTIONS;
+            pe.sample_period = 1000;
+            pe.sample_type = PERF_SAMPLE_RAW;
+            pe.sample_regs_user = PERF_SAMPLE_REGS_USER | PERF_SAMPLE_REGS_INTR;
+            pe.read_format = PERF_FORMAT_GROUP | PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING | PERF_FORMAT_ID;
         return syscall(SYS_perf_event_open, &pe, -1, -1, -1, 0);
     }
     return 0;
