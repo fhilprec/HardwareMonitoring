@@ -66,7 +66,7 @@ public:
             pe.sample_type = PERF_SAMPLE_RAW;
             pe.sample_regs_user = PERF_SAMPLE_REGS_USER | PERF_SAMPLE_REGS_INTR;
             pe.read_format = PERF_FORMAT_GROUP | PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING | PERF_FORMAT_ID;
-            auto ans =syscall(SYS_perf_event_open, &pe, -1, -1, -1, 0);
+            auto ans =syscall(__NR_perf_event_open, &pe, -1, -1, -1, 0);
             //also read our errno
             if (errno != 0) {
                 std::cerr << "Error opening perf event: " << errno << std::endl;
