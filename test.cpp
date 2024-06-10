@@ -7,8 +7,6 @@
 
 int main(){
     CPUPerf cpu;
-    PerfEvent p;
-    p.startCounters();
     cpu.printVector(cpu.getData());
     int i = 0;
     for (int i = 0; i < 100; i++) {
@@ -16,9 +14,6 @@ int main(){
         i = i * i;
     }
     cpu.printVector(cpu.getData());
-    p.stopCounters();
-    p.printReport(std::cout, 1);
-
 }
 
 /*
