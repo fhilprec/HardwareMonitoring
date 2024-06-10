@@ -85,7 +85,7 @@ public:
             pe.exclude_kernel = !(0b111 & 0b10);
             pe.exclude_hv = !(0b111 & 0b100);
             pe.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
-            auto ans =syscall(__NR_perf_event_open, &pe, -1, -1, -1, 0);
+            auto ans =syscall(__NR_perf_event_open, &pe, 0, -1, -1, 0);
             //also read our errno
             if (errno != 0) {
                 std::cerr << "Error opening perf event: " << errno << std::endl;
