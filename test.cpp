@@ -17,7 +17,7 @@ int main(){
     }
     cpu.printVector(cpu.getData());
     p.stopCounters();
-    p.printReport(std::cout, 100);
+    p.printReport(std::cout, 1);
 
 }
 
