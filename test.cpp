@@ -17,9 +17,7 @@ int main() {
     std::vector<Device> devices;
     devices.push_back(CPUPerf());
 
-    std::chrono::milliseconds pollingDuration(100);
-
-    Counter counter(devices, pollingDuration);
+    Counter counter(devices);
     counter.start();
     int i;
     for (i = 0; i < 1000000; i++) {

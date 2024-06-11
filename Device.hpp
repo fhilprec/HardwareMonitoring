@@ -8,18 +8,19 @@
 #include <linux/perf_event.h>
 #include <syscall.h>
 
+
+enum Sampler{
+    /* Reads at the end of the process */
+    ONE_SHOT,
+    /* Reads both at the start and the end of the process and returns the difference */
+    TWO_SHOT,
+    /* Reads at an interval */
+    POLLING
+};
+
 struct Metric {
-    bool isPolling = false;
+    Sampler samplingMethod;
     std::string name;
-
-    bool operator==(const Metric &rhs) const {
-        return isPolling == rhs.isPolling &&
-               name == rhs.name;
-    }
-
-    bool operator!=(const Metric &rhs) const {
-        return !(rhs == *this);
-    }
 };
 
 
@@ -28,9 +29,10 @@ public:
     virtual ~Device();
     Device() = default;
 
-    std::vector<std::pair<Metric, double>> getData(bool isPolling = false) {
+    std::vector<std::pair<Metric, double>> getData(Sampler sampler) {
         std::vector<std::pair<Metric, double>> result;
         //loop over each allowed metric and call fetchMetric on it
+        // TODO differentiate between sampling methods, maybe map or different vectors?
         for (Metric metric: allowedMetrics) {
             result.push_back({metric, fetchMetric(metric)});
         }
@@ -48,7 +50,7 @@ public:
 
 
     bool operator==(const Device &rhs) const {
-        return allowedMetrics == rhs.allowedMetrics;
+        return name == rhs.name;
     }
 
     bool operator!=(const Device &rhs) const {
@@ -68,8 +70,8 @@ class CPUPerf : public Device {
 public:
     CPUPerf() {
         //initialize allowed metrics with cycles only for now
-        allowedMetrics.push_back({false, "cycles"});
-        allowedMetrics.push_back({false, "instructions"});
+        allowedMetrics.push_back({TWO_SHOT, "cycles"});
+        allowedMetrics.push_back({TWO_SHOT, "instructions"});
         name = "CPUPerf";
     }
 
