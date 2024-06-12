@@ -7,10 +7,11 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
-#include <map>
+#include <unordered_map>
 #include <sstream>
 #include <string>
 #include <vector>
+#include <sys/ioctl.h>
 
 #include <asm/unistd.h>
 #include <linux/perf_event.h>
@@ -20,6 +21,7 @@
 
 
 struct Metric{
+    Metric(bool isPolling, std::string name) : isPolling(isPolling), name(name) {}
     bool isPolling = false;
     std::string name;
 };
@@ -33,9 +35,13 @@ class Device {
         std::vector<std::pair<Metric, double>> getData(bool isPolling = false);
         virtual double fetchMetric(Metric metric) = 0;
         std::vector<Metric> getAllowedMetrics(){
-            return this->allowedMetrics;
+            std::vector<Metric> result;
+            for (auto pair : allowedMetrics) {
+                result.push_back(pair.first);
+            }
+            return result;
         }
-        std::vector<Metric> allowedMetrics;
+        std::unordered_map<Metric, int> allowedMetrics;
 
 };   
 
@@ -44,16 +50,17 @@ class CPUPerf : public Device {
 public:
     CPUPerf() {
         //initialize allowed metrics with cycles only for now
-        allowedMetrics.push_back({false, "cycles"});
-        allowedMetrics.push_back({false, "instructions"});
+        allowedMetrics.insert(std::make_pair<Metric,int>(Metric(false, "cycles"),0));
+        allowedMetrics.insert(std::make_pair<Metric,int>(Metric(false, "instructions"),1));
+
     }
 
     std::vector<std::pair<Metric, double>> getData(bool isPolling = false) {
 
         std::vector<std::pair<Metric, double>> result;
         //loop over each allowed metric and call fetchMetric on it
-        for (Metric metric : allowedMetrics) {
-            result.push_back({metric, fetchMetric(metric)});
+        for (auto& pair: allowedMetrics) {
+            result.push_back({pair.first, fetchMetric(pair.first)});
         }
         return result;
         
