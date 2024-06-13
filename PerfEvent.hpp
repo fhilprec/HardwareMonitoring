@@ -60,7 +60,6 @@ struct PerfEvent {
 
       double readCounter() {
          double multiplexingCorrection = static_cast<double>(data.time_enabled - prev.time_enabled) / static_cast<double>(data.time_running - prev.time_running);
-         LOG(data.value - prev.value);
          return static_cast<double>(data.value - prev.value) * multiplexingCorrection;
       }
    };
