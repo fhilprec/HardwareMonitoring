@@ -77,10 +77,26 @@ class Device {
 
 class CPUPerf : public Device {
 public:
+    enum MetricType {
+        CYCLES,
+        INSTRUCTIONS
+    };
     CPUPerf() {
         //initialize allowed metrics with cycles only for now
-        allowedMetrics.insert(std::make_pair<Metric,int>(Metric(TWO_SHOT, "cycles"),0));
-        allowedMetrics.insert(std::make_pair<Metric,int>(Metric(TWO_SHOT, "instructions"),1));
+        allowedMetrics.insert(std::make_pair<Metric,int>(Metric(TWO_SHOT, "cycles"),CYCLES));
+        allowedMetrics.insert(std::make_pair<Metric,int>(Metric(TWO_SHOT, "instructions"),INSTRUCTIONS));
+
+        memset(&pe, 0, sizeof(struct perf_event_attr));
+        pe.type = static_cast<uint32_t>(PERF_TYPE_HARDWARE);
+        pe.size = sizeof(struct perf_event_attr);
+        //pe.config = PERF_COUNT_HW_CPU_CYCLES; done in fetchMetric
+        pe.disabled = true;
+        pe.inherit = 1;
+        pe.inherit_stat = 0;
+        pe.exclude_user = !(0b111 & 0b1);
+        pe.exclude_kernel = !(0b111 & 0b10);
+        pe.exclude_hv = !(0b111 & 0b100);
+        pe.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
 
     }
 
@@ -103,51 +119,25 @@ public:
 
 
 
-    double fetchMetric(const int& metricnum) override {
-        switch (metricnum) {
-            case 0: // cycles
+    double fetchMetric(const int& MetricNum) override {
+        long ans;
+        switch (MetricNum) {
+            case CYCLES: // cycles
             {
-                struct perf_event_attr pe;
-                memset(&pe, 0, sizeof(struct perf_event_attr));
-                pe.type = static_cast<uint32_t>(PERF_TYPE_HARDWARE);
-                pe.size = sizeof(struct perf_event_attr);
                 pe.config = PERF_COUNT_HW_CPU_CYCLES;
-                pe.disabled = true;
-                pe.inherit = 1;
-                pe.inherit_stat = 0;
-                pe.exclude_user = !(0b111 & 0b1);
-                pe.exclude_kernel = !(0b111 & 0b10);
-                pe.exclude_hv = !(0b111 & 0b100);
-                pe.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
-                auto ans = syscall(__NR_perf_event_open, &pe, 0, -1, -1, 0);
-                if (errno != 0) {
-                    std::cerr << "Error opening perf event: " << errno << std::endl;
-                }
-                return ans;
-            }
-            case 1: // instructions
+            }break;
+            case INSTRUCTIONS: // instructions
             {
-                struct perf_event_attr pe;
-                memset(&pe, 0, sizeof(struct perf_event_attr));
-                pe.type = static_cast<uint32_t>(PERF_TYPE_HARDWARE);
-                pe.size = sizeof(struct perf_event_attr);
                 pe.config = PERF_COUNT_HW_INSTRUCTIONS;
-                pe.disabled = true;
-                pe.inherit = 1;
-                pe.inherit_stat = 0;
-                pe.exclude_user = !(0b111 & 0b1);
-                pe.exclude_kernel = !(0b111 & 0b10);
-                pe.exclude_hv = !(0b111 & 0b100);
-                pe.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
-                auto ans = syscall(__NR_perf_event_open, &pe, 0, -1, -1, 0);
-                if (errno != 0) {
-                    std::cerr << "Error opening perf event: " << errno << std::endl;
-                }
-                return ans;
-            }
+            }break;
             default:
                 return 0;
+                
+            ans = syscall(__NR_perf_event_open, pe, 0, -1, -1, 0);
+            return ans;
         }
     }
-    
+    private:
+        struct perf_event_attr pe;//sd
     };
+

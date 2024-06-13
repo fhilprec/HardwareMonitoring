@@ -6,14 +6,18 @@
 //g++ test.cpp ; ./a.out ; rm a.out;
 
 int main(){
+    PerfEvent perf;
     CPUPerf cpu;
     cpu.printVector(cpu.getData());
-    int i = 0;
-    for (int i = 0; i < 100; i++) {
-        i = i + 1;
-        i = i * i;
+    int ans = 0;
+    perf.startCounters();
+    for (int i = 0; i < 10000; i++) {
+        ans = i + 6;
+        ans = ans * ans * ans;
     }
     cpu.printVector(cpu.getData());
+    perf.stopCounters();
+    perf.printReport(std::cout, 100);
 }
 
 /*
