@@ -82,25 +82,12 @@ public:
         INSTRUCTIONS
     };
 
-    struct event {
-      struct read_format {
+    struct read_format {
          uint64_t value;
          uint64_t time_enabled;
          uint64_t time_running;
          uint64_t id;
       };
-
-      perf_event_attr pe;
-      int fd;
-      read_format prev;
-      read_format data;
-
-      double readCounter() {
-         double multiplexingCorrection = static_cast<double>(data.time_enabled - prev.time_enabled) / static_cast<double>(data.time_running - prev.time_running);
-         LOG(data.value - prev.value);
-         return static_cast<double>(data.value - prev.value) * multiplexingCorrection;
-      }
-   };
 
 
 
@@ -161,10 +148,12 @@ public:
                 pe.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
                 pe.config = PERF_COUNT_HW_CPU_CYCLES;
                 int ret1 = static_cast<int>(__NR_perf_event_open, &pe, 0, -1, -1, 0);
-                uint64_t ret2 = 0;
-                read(ret1, &ret2, sizeof(uint64_t) * 1);
-                std::cout << ret2 << std::endl;
-                return static_cast<double>(ret2);
+                ioctl(ret1, PERF_EVENT_IOC_RESET, 0);
+                ioctl(ret1, PERF_EVENT_IOC_ENABLE, 0);
+                read_format redin;
+                read(ret1, &redin, sizeof(uint64_t) * 3);
+                std::cout << redin.value << std::endl;
+                return static_cast<double>(redin.value);
 
             }break;
             case INSTRUCTIONS: // instructions
@@ -184,10 +173,13 @@ public:
                 pe.config = PERF_COUNT_HW_CPU_CYCLES;
                 pe.config = PERF_COUNT_HW_INSTRUCTIONS;
 
-                int ret1 = (int)syscall(__NR_perf_event_open, &pe, 0, -1, -1, 0);
-                uint64_t ret2 = 0;
-                read(ret1, &ret2, sizeof(uint64_t) * 1);
-                return static_cast<double>(ret2);
+                int ret1 = static_cast<int>(__NR_perf_event_open, &pe, 0, -1, -1, 0);
+                ioctl(ret1, PERF_EVENT_IOC_RESET, 0);
+                ioctl(ret1, PERF_EVENT_IOC_ENABLE, 0);
+                read_format redin;
+                read(ret1, &redin, sizeof(uint64_t) * 3);
+                std::cout << redin.value << std::endl;
+                return static_cast<double>(redin.value);
             }break;
             default:
                 return 0;

@@ -84,6 +84,7 @@ struct PerfEvent {
       for (unsigned i=0; i<events.size(); i++) {
          auto& event = events[i];
          event.fd = static_cast<int>(syscall(__NR_perf_event_open, &event.pe, 0, -1, -1, 0));
+         LOG(event.fd);
          if (event.fd < 0) {
             std::cerr << "Error opening counter " << names[i] << std::endl;
             events.resize(0);
