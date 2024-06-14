@@ -5,7 +5,7 @@
 
 class Output{
 private:
-    OutputConfiguration *configuration;
+    OutputConfiguration configuration;
     bool isFirstLine = true;
 
 public:

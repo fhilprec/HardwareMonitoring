@@ -3,11 +3,11 @@
 
 class OutputConfiguration{
 public:
-    std::string *seperator;
+    std::string seperator;
     bool fileMode;
     std::ostream *stream_;
 
-    OutputConfiguration(std::string &seperator, bool fileMode, std::ostream &stream_){
+    explicit OutputConfiguration(std::string &seperator, bool fileMode, std::ostream *stream_){
         this->seperator = seperator;
         this->fileMode = fileMode;
         this->stream_ = stream_;
