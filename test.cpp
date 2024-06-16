@@ -23,25 +23,14 @@ int main() {
     for (i = 0; i < 1000000; i++) {
         std::cout << i << "\n";
     }
+
+    int ans = 0;
+
+    for (int i = 0; i < 10000; i++) {
+        ans = i + 6;
+        ans = ans * ans * ans;
+    }
     std::cout << i << std::endl;
     counter.stop();
 }
 
-/*
-int main(){
-    int a = 7;
-    int n = 10000;
-    PerfEvent e;
-    e.startCounters();
-    for (int i=0; i<n; i++) // this code will be measured
-    a = a * a;
-    e.stopCounters();
-    e.printReport(std::cout, n); / / use n as scale factor
-    std::cout << std::endl;
-
-    CSVWriter csv;
-    csv.newRow() << "this" << "is" << "the" << "first" << "row";
-    csv.newRow() << "this" << "is" << "the" << "second" << "row";
-    csv.writeToFile("foobar.csv");
-    return 0;
-}*/

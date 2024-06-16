@@ -60,7 +60,6 @@ struct PerfEvent {
 
       double readCounter() {
          double multiplexingCorrection = static_cast<double>(data.time_enabled - prev.time_enabled) / static_cast<double>(data.time_running - prev.time_running);
-         LOG(data.value - prev.value);
          return static_cast<double>(data.value - prev.value) * multiplexingCorrection;
       }
    };
@@ -74,17 +73,18 @@ struct PerfEvent {
 
    PerfEvent() {
       registerCounter("cycles", PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
-      registerCounter("kcycles", PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES, KERNEL);
-      registerCounter("instructions", PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS);
-      registerCounter("L1-misses", PERF_TYPE_HW_CACHE, PERF_COUNT_HW_CACHE_L1D|(PERF_COUNT_HW_CACHE_OP_READ<<8)|(PERF_COUNT_HW_CACHE_RESULT_MISS<<16));
-      registerCounter("LLC-misses", PERF_TYPE_HARDWARE, PERF_COUNT_HW_CACHE_MISSES);
-      registerCounter("branch-misses", PERF_TYPE_HARDWARE, PERF_COUNT_HW_BRANCH_MISSES);
-      registerCounter("task-clock", PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK);
+      //registerCounter("kcycles", PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES, KERNEL);
+      //registerCounter("instructions", PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS);
+      //registerCounter("L1-misses", PERF_TYPE_HW_CACHE, PERF_COUNT_HW_CACHE_L1D|(PERF_COUNT_HW_CACHE_OP_READ<<8)|(PERF_COUNT_HW_CACHE_RESULT_MISS<<16));
+      //registerCounter("LLC-misses", PERF_TYPE_HARDWARE, PERF_COUNT_HW_CACHE_MISSES);
+      //registerCounter("branch-misses", PERF_TYPE_HARDWARE, PERF_COUNT_HW_BRANCH_MISSES);
+      //registerCounter("task-clock", PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK);
       // additional counters can be found in linux/perf_event.h
 
       for (unsigned i=0; i<events.size(); i++) {
          auto& event = events[i];
          event.fd = static_cast<int>(syscall(__NR_perf_event_open, &event.pe, 0, -1, -1, 0));
+         LOG(event.fd);
          if (event.fd < 0) {
             std::cerr << "Error opening counter " << names[i] << std::endl;
             events.resize(0);
@@ -106,20 +106,22 @@ struct PerfEvent {
       pe.disabled = true;
       pe.inherit = 1;
       pe.inherit_stat = 0;
-      pe.exclude_user = !(domain & USER);
-      pe.exclude_kernel = !(domain & KERNEL);
-      pe.exclude_hv = !(domain & HYPERVISOR);
+      pe.exclude_user = 0;
+      pe.exclude_kernel = 0;
+      pe.exclude_hv = 0;
       pe.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
    }
 
    void startCounters() {
       for (unsigned i=0; i<events.size(); i++) {
          auto& event = events[i];
+         LOG(event.fd);
          ioctl(event.fd, PERF_EVENT_IOC_RESET, 0);
          ioctl(event.fd, PERF_EVENT_IOC_ENABLE, 0);
          if (read(event.fd, &event.prev, sizeof(uint64_t) * 3) != sizeof(uint64_t) * 3)
             std::cerr << "Error reading counter " << names[i] << std::endl;
       }
+      
       startTime = std::chrono::steady_clock::now();
    }
 
