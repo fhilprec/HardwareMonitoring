@@ -61,7 +61,6 @@ protected:
     std::vector<Metric> oneShotMetrics;
     std::vector<Metric> twoShotMetrics;
 public:
-    virtual ~Device();
 
     Device() = default;
     Device(const std::vector<Metric>& metrics){
@@ -209,6 +208,12 @@ public:
       }
     }
 
+    ~CPUPerf() {
+      for (auto& event : events) {
+         close(event.fd);
+      }
+   }
+
     void registerCounter(uint64_t type, uint64_t eventID, EventDomain domain = ALL) {
       events.push_back(event());
       auto& event = events.back();
@@ -263,6 +268,7 @@ public:
             result.push_back(std::make_pair(metric, Measurement(valueString)));
         }
         first = false;
+        return result;
     }
     
     void printVector() {

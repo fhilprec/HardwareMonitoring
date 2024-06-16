@@ -9,15 +9,23 @@ int main(){
     //PerfEvent perf;
     CPUPerf cpu;
     //perf.startCounters();
-    cpu.start();
+    std::vector<std::pair<Metric, Measurement>> data = cpu.getData(TWO_SHOT);
+
+    for (auto& d : data) {
+        std::cout << d.first.name << ": " << d.second.value << std::endl;
+    }
+
     int ans = 0;
     
     for (int i = 0; i < 10000; i++) {
         ans = i + 6;
         ans = ans * ans * ans;
     }
-    cpu.stop();
-    cpu.printVector();
+    data = cpu.getData(TWO_SHOT);
+
+    for (auto& d : data) {
+        std::cout << d.first.name << ": " << d.second.value << std::endl;
+    }
     //perf.stopCounters();
     //perf.printReport(std::cout, 1);
 }
