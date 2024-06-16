@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <vector>
 #include <linux/perf_event.h>
@@ -13,20 +15,25 @@
 #include <asm/unistd.h>
 #include <unistd.h>
 
-#define LOG(x) std::cout << x << std::endl 
+#define LOG(x) std::cout << x << std::endl
 
 
-enum Sampler{
-    ONE_SHOT,    // Reads at the end of the process
-    TWO_SHOT,    // Reads both at the start and the end of the process and returns the difference
-    POLLING      // Reads at an interval
+enum Sampler {
+    /* Reads at the end of the process */
+    ONE_SHOT,
+    /* Reads both at the start and the end of the process and returns the difference */
+    TWO_SHOT,
+    /* Reads at an interval */
+    POLLING
 };
+
 
 struct Metric {
     Sampler samplingMethod;
     std::string name;
 
     Metric(Sampler samplingMethod, std::string name) : samplingMethod(samplingMethod), name(name) {}
+
     bool operator==(const Metric &rhs) const {
         return samplingMethod == rhs.samplingMethod &&
                name == rhs.name;
@@ -38,25 +45,95 @@ struct Metric {
 };
 
 struct MetricHasher {
-    std::size_t operator()(const Metric& metric) const {
+    std::size_t operator()(const Metric &metric) const {
         return std::hash<std::string>()(metric.name);
     }
 };
 
+struct Measurement {
+    Measurement(std::string value) : value(value) {}
+    std::string value;
+};
+
 class Device {
+protected:
+    std::vector<Metric> pollingMetrics;
+    std::vector<Metric> oneShotMetrics;
+    std::vector<Metric> twoShotMetrics;
 public:
-    Device() {}
-    virtual std::vector<std::pair<Metric, double>> getData(bool isPolling = false) = 0;
-    std::vector<Metric> getAllowedMetrics() {
-        std::vector<Metric> result;
-        for (const auto& pair : allowedMetrics) {
-            result.push_back(pair.first);
+    virtual ~Device();
+
+    Device() = default;
+    Device(const std::vector<Metric>& metrics){
+        for (const auto &metric: metrics){
+            /*if(std::find(allowedMetrics.begin(), allowedMetrics.end(),metric) == allowedMetrics.end()){
+                continue;
+            }*/
+            switch (metric.samplingMethod) {
+                case ONE_SHOT:
+                    oneShotMetrics.push_back(metric);
+                    break;
+                case TWO_SHOT:
+                    twoShotMetrics.push_back(metric);
+                    break;
+                case POLLING:
+                    pollingMetrics.push_back(metric);
+                    break;
+            }
+        }
+    } ;
+
+    std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler) {
+        std::vector<std::pair<Metric, Measurement>> result;
+        switch (sampler) {
+            case POLLING:
+                for (const auto &pollingMetric: pollingMetrics) {
+                    result.emplace_back(pollingMetric, fetchMetric(pollingMetric));
+                }
+                break;
+            case ONE_SHOT:
+                for (const auto &pollingMetric: oneShotMetrics) {
+                    result.emplace_back(pollingMetric, fetchMetric(pollingMetric));
+                }
+                break;
+            case TWO_SHOT:
+                for (const auto &pollingMetric: twoShotMetrics) {
+                    result.emplace_back(pollingMetric, fetchMetric(pollingMetric));
+                }
+                break;
         }
         return result;
     }
-protected:
-    std::unordered_map<Metric, int, MetricHasher> allowedMetrics;
+
+    virtual Measurement fetchMetric(const Metric &metric) { return {""}; };
+
+
+    std::vector<Metric> allowedMetrics;
+    std::string name;
+
+    std::vector<Metric> getAllowedMetrics() {
+        return this->allowedMetrics;
+    }
+
+
+    bool operator==(const Device &rhs) const {
+        return name == rhs.name;
+    }
+
+    bool operator!=(const Device &rhs) const {
+        return !(rhs == *this);
+    }
+
 };
+
+struct DeviceHasher {
+    size_t operator()(const Device &device) const {
+        return std::hash<std::string>{}(device.name);
+    }
+};
+
+
+
 
 
 
@@ -68,6 +145,7 @@ protected:
 class CPUPerf : public Device {
 private:
 
+    bool first = true;
     std::chrono::time_point<std::chrono::steady_clock> startTime;
     std::chrono::time_point<std::chrono::steady_clock> stopTime;
     enum EventDomain : uint8_t { USER = 0b1, KERNEL = 0b10, HYPERVISOR = 0b100, ALL = 0b111 };
@@ -91,35 +169,47 @@ private:
    };
 
     std::vector<event> events;
-    std::vector<std::string> names;
 
 
 public:
     CPUPerf() {
-        registerCounter("cycles", PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
-        registerCounter("kcycles", PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES, KERNEL);
-        registerCounter("instructions", PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS);
-        registerCounter("L1-misses", PERF_TYPE_HW_CACHE, PERF_COUNT_HW_CACHE_L1D|(PERF_COUNT_HW_CACHE_OP_READ<<8)|(PERF_COUNT_HW_CACHE_RESULT_MISS<<16));
-        registerCounter("LLC-misses", PERF_TYPE_HARDWARE, PERF_COUNT_HW_CACHE_MISSES);
-        registerCounter("branch-misses", PERF_TYPE_HARDWARE, PERF_COUNT_HW_BRANCH_MISSES);
-        registerCounter("task-clock", PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK);
-        registerCounter("task-clock", PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK);
+
+
+        /* Maybe this should not be here */
+        std::vector<Metric> pollingMetrics = {Metric(TWO_SHOT, "cycles"),
+                                         Metric(TWO_SHOT, "kcycles"),
+                                         Metric(TWO_SHOT, "instructions"),
+                                         Metric(TWO_SHOT, "L1-misses"),
+                                         Metric(TWO_SHOT, "LLC-misses"),
+                                         Metric(TWO_SHOT, "branch-misses")};
+        
+        twoShotMetrics = pollingMetrics;
+
+
+
+        for (auto& metric: twoShotMetrics) {
+            if(metric.name == "cycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
+            if(metric.name == "kcycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES, KERNEL);
+            if(metric.name == "instructions") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS);
+            if(metric.name == "L1-misses") registerCounter(PERF_TYPE_HW_CACHE, PERF_COUNT_HW_CACHE_L1D|(PERF_COUNT_HW_CACHE_OP_READ<<8)|(PERF_COUNT_HW_CACHE_RESULT_MISS<<16));
+            if(metric.name == "LLC-misses") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CACHE_MISSES);
+            if(metric.name == "branch-misses") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_BRANCH_MISSES);
+            if(metric.name == "task-clock") registerCounter(PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK);
+        }
 
 
         for (unsigned i=0; i<events.size(); i++) {
          auto& event = events[i];
          event.fd = static_cast<int>(syscall(__NR_perf_event_open, &event.pe, 0, -1, -1, 0));
          if (event.fd < 0) {
-            std::cerr << "Error opening counter " << names[i] << std::endl;
+            std::cerr << "Error opening counters" << std::endl;
             events.resize(0);
-            names.resize(0);
             return;
          }
       }
     }
 
-    void registerCounter(const std::string& name, uint64_t type, uint64_t eventID, EventDomain domain = ALL) {
-      names.push_back(name);
+    void registerCounter(uint64_t type, uint64_t eventID, EventDomain domain = ALL) {
       events.push_back(event());
       auto& event = events.back();
       auto& pe = event.pe;
@@ -142,7 +232,7 @@ public:
          ioctl(event.fd, PERF_EVENT_IOC_RESET, 0);
          ioctl(event.fd, PERF_EVENT_IOC_ENABLE, 0);
          if (read(event.fd, &event.prev, sizeof(uint64_t) * 3) != sizeof(uint64_t) * 3)
-            std::cerr << "Error reading counter " << names[i] << std::endl;
+            std::cerr << "Error reading counter " << twoShotMetrics[i].name << std::endl;
       }
       startTime = std::chrono::steady_clock::now();
     }
@@ -152,14 +242,27 @@ public:
       for (unsigned i=0; i<events.size(); i++) {
          auto& event = events[i];
          if (read(event.fd, &event.data, sizeof(uint64_t) * 3) != sizeof(uint64_t) * 3)
-            std::cerr << "Error reading counter " << names[i] << std::endl;
+            std::cerr << "Error reading counter " << twoShotMetrics[i].name << std::endl;
          ioctl(event.fd, PERF_EVENT_IOC_DISABLE, 0);
       }
     }
 
-    std::vector<std::pair<Metric, double>> getData(bool isPolling = false) override {
-        // TODO: Implement the actual data fetching based on polling if needed
-        return {};
+    std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler)  {
+        if (sampler != TWO_SHOT) {
+            std::cerr << "CPUPerf only supports TWO_SHOT" << std::endl;
+            return std::vector<std::pair<Metric, Measurement>>();
+        }
+
+        
+        first ? start() : stop();
+        std::vector<std::pair<Metric, Measurement>> result;
+        for(int i = 0; i < twoShotMetrics.size(); i++) {
+            Metric& metric = twoShotMetrics[i];
+            auto& event = events[i];
+            std::string valueString = std::to_string(first ? 0 : event.readCounter());
+            result.push_back(std::make_pair(metric, Measurement(valueString)));
+        }
+        first = false;
     }
     
     void printVector() {
