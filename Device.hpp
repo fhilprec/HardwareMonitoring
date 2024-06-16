@@ -229,11 +229,6 @@ public:
         }
     }
 
-    std::vector<std::pair<Metric, double>> getData(bool isPolling = false) override {
-        // TODO: Implement the actual data fetching based on polling if needed
-        return {};
-    }
-
     void printVector() {
         for (size_t i = 0; i < events.size(); i++) {
             LOG(events[i].readCounter());
