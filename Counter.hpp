@@ -22,7 +22,6 @@ class Counter {
 private:
     CounterConfig counterConfig;
 
-    //std::unordered_map<Device, std::vector<std::vector<std::pair<Metric, Measurement>>>, DeviceHasher> monitoringData; //TODO replace with output
     std::unordered_map<Device, Output ,DeviceHasher> outputForDevice;
     const Metric TIME_METRIC = {POLLING,"Time of Polling"};
     const Metric TIME_TAKEN_POLLING_METRIC = {POLLING,"Time Taken for Polling"};
