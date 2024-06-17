@@ -65,9 +65,6 @@ public:
     Device() = default;
     Device(const std::vector<Metric>& metrics){
         for (const auto &metric: metrics){
-            /*if(std::find(allowedMetrics.begin(), allowedMetrics.end(),metric) == allowedMetrics.end()){
-                continue;
-            }*/
             switch (metric.samplingMethod) {
                 case ONE_SHOT:
                     oneShotMetrics.push_back(metric);
@@ -82,7 +79,7 @@ public:
         }
     } ;
 
-    std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler) {
+    virtual std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler) {
         std::vector<std::pair<Metric, Measurement>> result;
         switch (sampler) {
             case POLLING:
@@ -172,7 +169,7 @@ private:
 
 public:
     CPUPerf() {
-
+        name = "CPUPerf";
 
         /* Maybe this should not be here */
         std::vector<Metric> pollingMetrics = {Metric(TWO_SHOT, "cycles"),
@@ -252,25 +249,24 @@ public:
       }
     }
 
-    std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler)  {
-        if (sampler != TWO_SHOT) {
-            std::cerr << "CPUPerf only supports TWO_SHOT" << std::endl;
-            return std::vector<std::pair<Metric, Measurement>>();
+    std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler) override  {
+        if (sampler == TWO_SHOT && first) {
+            start();
+            first = false;
+            return {};
         }
-
-        
-        first ? start() : stop();
-        std::vector<std::pair<Metric, Measurement>> result;
-        for(int i = 0; i < twoShotMetrics.size(); i++) {
-            Metric& metric = twoShotMetrics[i];
-            auto& event = events[i];
-            std::string valueString = std::to_string(first ? 0 : event.readCounter());
-            result.push_back(std::make_pair(metric, Measurement(valueString)));
-        }
-        first = false;
-        return result;
+        return Device::getData(sampler);
     }
-    
+
+
+    Measurement fetchMetric(const Metric &metric) override {
+        std::vector<std::pair<Metric, Measurement>> result;
+        int index = std::distance(std::find(twoShotMetrics.begin(), twoShotMetrics.end(),metric),twoShotMetrics.begin());
+        auto& event = events[index];
+        std::string valueString = std::to_string(first ? 0 : event.readCounter());
+        return {valueString};
+    }
+
     void printVector() {
         for (size_t i = 0; i < events.size(); i++) {
             LOG(events[i].readCounter());

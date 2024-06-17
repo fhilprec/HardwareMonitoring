@@ -12,7 +12,7 @@
 
 class Counter {
 private:
-    std::vector<Device> devices;
+    std::vector<std::unique_ptr<Device>> devices;
     std::chrono::milliseconds pollingTimeFrame;
 
     std::unordered_map<Device, std::vector<std::vector<std::pair<Metric, Measurement>>>, DeviceHasher> monitoringData; //TODO replace with output
@@ -27,15 +27,15 @@ private:
     std::vector<Device> slowPollingDevices;
 
 public:
-    explicit Counter(std::vector<Device> devices) : Counter(devices, std::chrono::milliseconds(500)) {}
-    Counter(std::vector<Device> devicesToMonitor, std::chrono::milliseconds pollingTimeFrame) : pollingTimeFrame(
+    explicit Counter(std::vector<std::unique_ptr<Device>>& devices) : Counter(devices, std::chrono::milliseconds(500)) {}
+    Counter(std::vector<std::unique_ptr<Device>>& devicesToMonitor, std::chrono::milliseconds pollingTimeFrame) : pollingTimeFrame(
             pollingTimeFrame), devices(std::move(devicesToMonitor)), monitoringData(
             std::unordered_map<Device, std::vector<std::vector<std::pair<Metric, Measurement>>>, DeviceHasher>(devicesToMonitor.size())),
-            pollingThread(std::jthread(std::bind_front(&Counter::poll,this))),
+            pollingThread(std::jthread(std::bind_front(&Counter::poll, this))),
             slowPollingDevices(std::vector<Device>(devicesToMonitor.size())){
         for (const auto &device: devices) {
-            std::vector<std::vector<std::pair<Metric, Measurement>>> empty_vector(100);
-            monitoringData.emplace(device, empty_vector);
+            std::vector<std::vector<std::pair<Metric, Measurement>>> empty_vector;
+            monitoringData.emplace(*device, empty_vector);
         }
     }
 
@@ -75,20 +75,22 @@ private:
     }
 
     void fetchData(Sampler sampleMethod) {
-        for (Device &device: devices) {
+        for (const auto &device: devices) {
             auto startPoll = std::chrono::system_clock::now();
-            auto deviceData = device.getData(sampleMethod);
+            auto deviceData = device->getData(sampleMethod);
             auto endPoll = std::chrono::system_clock::now();
 
             auto timeForPull = std::chrono::duration_cast<std::chrono::milliseconds>(endPoll - startPoll);
 
             #if sampleMethod == POLLING
-            checkPollingTime(device, timeForPull);
+            checkPollingTime(*device, timeForPull);
             #endif
 
-            deviceData.emplace_back(TIME_TAKEN_POLLING_METRIC, std::format("{} ms",timeForPull.count()));
-            deviceData.emplace_back(TIME_METRIC, std::format("{:%Y/%m/%d %T}", startPoll));
-            monitoringData.at(device).push_back(deviceData);
+            if(!deviceData.empty()) {
+                deviceData.emplace_back(TIME_TAKEN_POLLING_METRIC, std::format("{} ms", timeForPull.count()));
+                deviceData.emplace_back(TIME_METRIC, std::format("{:%Y/%m/%d %T}", startPoll));
+                monitoringData.at(*device).push_back(deviceData);
+            }
         }
     }
 
@@ -106,10 +108,10 @@ private:
         //TODO close output?
         //TEST
         for (const auto &device: devices) {
-            std::cout << "\nDevice: " << device.name << std::endl;
-            auto &deviceData = monitoringData.at(device);
-            for (int i = 0; i < deviceData.size(); i++) {
-                printVector(deviceData.at(i));
+            std::cout << "\nDevice: " << device->name << std::endl;
+            auto &deviceData = monitoringData.at(*device);
+            for (const auto & i : deviceData) {
+                printVector(i);
             }
         }
     }
