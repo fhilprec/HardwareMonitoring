@@ -178,7 +178,7 @@ public:
                                          Metric(TWO_SHOT, "L1-misses"),
                                          Metric(TWO_SHOT, "LLC-misses"),
                                          Metric(TWO_SHOT, "branch-misses")};
-        
+
         twoShotMetrics = pollingMetrics;
 
 
@@ -272,6 +272,6 @@ public:
             LOG(events[i].readCounter());
         }
     }
-    
-    
+
+
 };
