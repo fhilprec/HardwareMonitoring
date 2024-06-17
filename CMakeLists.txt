@@ -24,7 +24,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED YES)
 # Other common choices are STATIC, SHARED, and MODULE
 # Including header files here helps IDEs but is not required.
 # Output libname matches target name, with the usual extensions on your system
-add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp)
+add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
+        Output.hpp
+        Output.cpp
+        OutputConfiguration.cpp
+        OutputConfiguration.hpp)
 
 # Link each target with other targets or add options, etc.
 

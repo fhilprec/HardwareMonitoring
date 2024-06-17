@@ -16,8 +16,12 @@ int main() {
 
     std::vector<std::unique_ptr<Device>> devices;
     devices.emplace_back(new CPUPerf());
+    std::filesystem::path outputDirectory("testOutput");
+    auto fullPath = absolute(outputDirectory);
+    std::chrono::milliseconds pollingTime = std::chrono::milliseconds(100);
 
-    Counter counter(devices);
+    Counter counter(devices,pollingTime, fullPath);
+
     counter.start();
 
     long long max=0;

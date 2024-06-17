@@ -1,4 +1,5 @@
 #include "Device.hpp"
+#include "Output.hpp"
 
 #include <iostream>
 #include <utility>
@@ -8,14 +9,21 @@
 #include <chrono>
 #include <thread>
 #include <functional>
+#include <filesystem>
+#include <fstream>
 
+struct CounterConfig{
+    std::vector<std::unique_ptr<Device>> devices;
+    std::chrono::milliseconds pollingTimeFrame;
+    std::optional<std::filesystem::path> outputDirectory;
+};
 
 class Counter {
 private:
-    std::vector<std::unique_ptr<Device>> devices;
-    std::chrono::milliseconds pollingTimeFrame;
+    CounterConfig counterConfig;
 
-    std::unordered_map<Device, std::vector<std::vector<std::pair<Metric, Measurement>>>, DeviceHasher> monitoringData; //TODO replace with output
+    //std::unordered_map<Device, std::vector<std::vector<std::pair<Metric, Measurement>>>, DeviceHasher> monitoringData; //TODO replace with output
+    std::unordered_map<Device, Output ,DeviceHasher> outputForDevice;
     const Metric TIME_METRIC = {POLLING,"Time of Polling"};
     const Metric TIME_TAKEN_POLLING_METRIC = {POLLING,"Time Taken for Polling"};
 
@@ -27,15 +35,25 @@ private:
     std::vector<Device> slowPollingDevices;
 
 public:
-    explicit Counter(std::vector<std::unique_ptr<Device>>& devices) : Counter(devices, std::chrono::milliseconds(500)) {}
-    Counter(std::vector<std::unique_ptr<Device>>& devicesToMonitor, std::chrono::milliseconds pollingTimeFrame) : pollingTimeFrame(
-            pollingTimeFrame), devices(std::move(devicesToMonitor)), monitoringData(
-            std::unordered_map<Device, std::vector<std::vector<std::pair<Metric, Measurement>>>, DeviceHasher>(devicesToMonitor.size())),
-            pollingThread(std::jthread(std::bind_front(&Counter::poll, this))),
-            slowPollingDevices(std::vector<Device>(devicesToMonitor.size())){
-        for (const auto &device: devices) {
-            std::vector<std::vector<std::pair<Metric, Measurement>>> empty_vector;
-            monitoringData.emplace(*device, empty_vector);
+    explicit Counter(std::vector<std::unique_ptr<Device>>& devices) : Counter(devices, std::chrono::milliseconds(500),{}) {}
+    Counter(std::vector<std::unique_ptr<Device>>& devicesToMonitor, std::chrono::milliseconds pollingTimeFrame, std::optional<std::filesystem::path> outputDirectory):
+    counterConfig({std::move(devicesToMonitor), pollingTimeFrame, std::move(outputDirectory)}),
+    outputForDevice(std::unordered_map<Device, Output, DeviceHasher>(devicesToMonitor.size())),
+    pollingThread(std::jthread(std::bind_front(&Counter::poll, this))),
+    slowPollingDevices(std::vector<Device>(devicesToMonitor.size()))
+    {
+
+        if(counterConfig.outputDirectory.has_value() && !std::filesystem::is_directory(counterConfig.outputDirectory.value())){
+            throw std::invalid_argument(std::format("Path '{}' is not a directory", counterConfig.outputDirectory.value().string()));
+        }
+        for (const auto &device: counterConfig.devices) {
+            OutputConfiguration configForDevice = {";", false, std::shared_ptr<std::ostream>(&std::cout,[](void*) {})};
+            if(counterConfig.outputDirectory.has_value()){
+                configForDevice.fileMode = true;
+                std::filesystem::path filePath = counterConfig.outputDirectory.value().append(std::format("{}.csv",device->name));
+                configForDevice.stream_ = std::make_shared<std::ofstream>(std::ofstream(std::ofstream(filePath)));
+            }
+            outputForDevice.emplace(*device, Output(configForDevice));
         }
     }
 
@@ -63,8 +81,8 @@ private:
             fetchData(POLLING);
             auto endTimePoll = std::chrono::system_clock::now();
 
-            auto remainingPollTime = pollingTimeFrame -std::chrono::duration_cast<std::chrono::milliseconds>(endTimePoll - startTimePoll);
-            remainingPollTime = remainingPollTime < std::chrono::milliseconds(0) ? pollingTimeFrame - remainingPollTime : remainingPollTime;
+            auto remainingPollTime = counterConfig.pollingTimeFrame - std::chrono::duration_cast<std::chrono::milliseconds>(endTimePoll - startTimePoll);
+            remainingPollTime = remainingPollTime < std::chrono::milliseconds(0) ?  counterConfig.pollingTimeFrame - remainingPollTime : remainingPollTime;
             
             std::this_thread::sleep_for(remainingPollTime);
         }
@@ -75,7 +93,7 @@ private:
     }
 
     void fetchData(Sampler sampleMethod) {
-        for (const auto &device: devices) {
+        for (const auto &device:  counterConfig.devices) {
             auto startPoll = std::chrono::system_clock::now();
             auto deviceData = device->getData(sampleMethod);
             auto endPoll = std::chrono::system_clock::now();
@@ -89,7 +107,7 @@ private:
             if(!deviceData.empty()) {
                 deviceData.emplace_back(TIME_TAKEN_POLLING_METRIC, std::format("{} ms", timeForPull.count()));
                 deviceData.emplace_back(TIME_METRIC, std::format("{:%Y/%m/%d %T}", startPoll));
-                monitoringData.at(*device).push_back(deviceData);
+                outputForDevice.at(*device).writeLine(deviceData);
             }
         }
     }
@@ -97,31 +115,14 @@ private:
     void checkPollingTime(const Device &device, const std::chrono::milliseconds &timeForPull) {
         bool deviceNotWarned = std::find(slowPollingDevices.begin(), slowPollingDevices.end(), device) != slowPollingDevices.end();
 
-        if(deviceNotWarned && timeForPull * devices.size() > pollingTimeFrame){
-            std::cerr << "Polling Time Window of " << pollingTimeFrame.count() << "ms may get skipped";
+        if(deviceNotWarned && timeForPull *  counterConfig.devices.size() >  counterConfig.pollingTimeFrame){
+            std::cerr << "Polling Time Window of " <<  counterConfig.pollingTimeFrame.count() << "ms may get skipped";
             std::cerr << "Device '" << device.name << "' took " << timeForPull.count() << "ms for Poll, expecting Poll to get skipped";
             slowPollingDevices.push_back(device);
         }
     }
 
     void finish(){
-        //TODO close output?
-        //TEST
-        for (const auto &device: devices) {
-            std::cout << "\nDevice: " << device->name << std::endl;
-            auto &deviceData = monitoringData.at(*device);
-            for (const auto & i : deviceData) {
-                printVector(i);
-            }
-        }
-    }
-
-    //For Testing
-    //write a print for a std::vector<std::pair<Metric, double>>
-    void printVector(const std::vector<std::pair<Metric, Measurement>> &vector) {
-        for (const auto &pair: vector) {
-            std::cout << "Metric: " << pair.first.name << ", Value: " << pair.second.value << std::endl;
-        }
     }
 };
 
