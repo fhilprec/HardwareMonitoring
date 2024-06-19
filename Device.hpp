@@ -249,13 +249,24 @@ public:
       }
     }
 
-    std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler) override  {
-        if (sampler == TWO_SHOT && first) {
-            start();
-            first = false;
-            return {};
+    std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler)  {
+        if (sampler != TWO_SHOT) {
+            std::cerr << "CPUPerf only supports TWO_SHOT" << std::endl;
+            return std::vector<std::pair<Metric, Measurement>>();
         }
-        return Device::getData(sampler);
+
+
+        first ? start() : stop();
+        std::vector<std::pair<Metric, Measurement>> result;
+        if (first){first = false; return result;}
+        for(int i = 0; i < twoShotMetrics.size(); i++) {
+            Metric& metric = twoShotMetrics[i];
+            auto& event = events[i];
+            std::string valueString = std::to_string(first ? 0 : event.readCounter());
+            result.push_back(std::make_pair(metric, Measurement(valueString)));
+        }
+
+        return result;
     }
 
 
