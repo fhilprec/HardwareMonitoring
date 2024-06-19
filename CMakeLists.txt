@@ -28,7 +28,16 @@ add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
         Output.hpp
         Output.cpp
         OutputConfiguration.cpp
-        OutputConfiguration.hpp)
+        OutputConfiguration.hpp
+        Sampler.cpp
+        Sampler.h
+        Metric.cpp
+        Metric.h
+        Measurement.cpp
+        Measurement.h
+        CPUPerf.cpp
+        CPUPerf.h
+)
 
 # Link each target with other targets or add options, etc.
 
