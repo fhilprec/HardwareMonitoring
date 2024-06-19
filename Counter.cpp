@@ -20,10 +20,11 @@ Counter::Counter(std::vector<std::unique_ptr<Device>>& devicesToMonitor,
             {
             })
         };
-        configForDevice.fileMode = true;
-        std::filesystem::path filePath = std::filesystem::temp_directory_path().append(
-            std::format("{}.csv", device->getName()));
-        configForDevice.stream_ = std::make_shared<std::ofstream>(std::ofstream(std::ofstream(filePath)));
+        if(counterConfig.outputDirectory.has_value()){
+            configForDevice.fileMode = true;
+            std::filesystem::path filePath = counterConfig.outputDirectory.value().append(std::format("{}.csv",device->name));
+            configForDevice.stream_ = std::make_shared<std::ofstream>(std::ofstream(std::ofstream(filePath)));
+        }
         outputForDevice.emplace(*device, Output(configForDevice));
     }
 }
