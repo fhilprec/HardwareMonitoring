@@ -17,14 +17,20 @@ public:
     void writeLine(const std::vector<std::pair<Metric, Measurement>> &metrics) {
         if (isFirstLine) {
             for (auto &metric: metrics) {
-                *configuration.stream_ << metric.first.name << configuration.separator;
+                *configuration.stream_ << metric.first.name;
+                if (&metric != &metrics.back()){
+                    *configuration.stream_ << configuration.separator;
+                }
             }
-            *configuration.stream_ << std::endl;
+            *configuration.stream_ << "\n";
             isFirstLine = false;
         }
         for (auto &metric: metrics) {
-            *configuration.stream_ << metric.second.value << configuration.separator;
+            *configuration.stream_ << metric.second.value;
+            if (&metric != &metrics.back()){
+                    *configuration.stream_ << configuration.separator;
+                }
         }
-        *configuration.stream_ << std::endl;
+        *configuration.stream_ << "\n";
     }
 };
