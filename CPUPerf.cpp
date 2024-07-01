@@ -11,22 +11,15 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-CPUPerf::CPUPerf(const std::vector<Metric>& metrics): Device("CPUPerf",metrics)
-{
-
-    /* Maybe this should not be here */
-    std::vector<Metric> pollingMetrics = {Metric(TWO_SHOT, "cycles"),
+CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device(
+    {Metric(TWO_SHOT, "cycles"),
         Metric(TWO_SHOT, "kcycles"),
         Metric(TWO_SHOT, "instructions"),
         Metric(TWO_SHOT, "L1-misses"),
         Metric(TWO_SHOT, "LLC-misses"),
-        Metric(TWO_SHOT, "branch-misses")};
-
-    twoShotMetrics = pollingMetrics;
-
-
-
-    for (auto& metric: twoShotMetrics) {
+        Metric(TWO_SHOT, "branch-misses")},{},metricsToCount,"CPUPerf")
+{
+    for (auto& metric: userGivenTwoShotMetrics) {
         if(metric.name == "cycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
         if(metric.name == "kcycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES, KERNEL);
         if(metric.name == "instructions") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS);
@@ -47,6 +40,8 @@ CPUPerf::CPUPerf(const std::vector<Metric>& metrics): Device("CPUPerf",metrics)
         }
     }
 }
+
+
 
 CPUPerf::~CPUPerf()
 {
@@ -80,7 +75,7 @@ void CPUPerf::start()
         ioctl(event.fd, PERF_EVENT_IOC_RESET, 0);
         ioctl(event.fd, PERF_EVENT_IOC_ENABLE, 0);
         if (read(event.fd, &event.prev, sizeof(uint64_t) * 3) != sizeof(uint64_t) * 3)
-            std::cerr << "Error reading counter " << twoShotMetrics[i].name << std::endl;
+            std::cerr << "Error reading counter " << userGivenTwoShotMetrics[i].name << std::endl;
     }
     startTime = std::chrono::steady_clock::now();
 }
@@ -91,7 +86,7 @@ void CPUPerf::stop()
     for (unsigned i=0; i<events.size(); i++) {
         auto& event = events[i];
         if (read(event.fd, &event.data, sizeof(uint64_t) * 3) != sizeof(uint64_t) * 3)
-            std::cerr << "Error reading counter " << twoShotMetrics[i].name << std::endl;
+            std::cerr << "Error reading counter " << userGivenTwoShotMetrics[i].name << std::endl;
         ioctl(event.fd, PERF_EVENT_IOC_DISABLE, 0);
     }
 }
@@ -116,7 +111,7 @@ std::vector<std::pair<Metric, Measurement>> CPUPerf::getData(const Sampler sampl
 Measurement CPUPerf::fetchMetric(const Metric& metric)
 {
     std::vector<std::pair<Metric, Measurement>> result;
-    const int index = std::distance(twoShotMetrics.begin(),std::ranges::find(twoShotMetrics,metric));
+    const int index = std::distance(userGivenTwoShotMetrics.begin(),std::ranges::find(userGivenTwoShotMetrics,metric));
     const auto& event = events[index];
     const std::string valueString = std::to_string(first ? 0 : event.readCounter());
     return Measurement(valueString);

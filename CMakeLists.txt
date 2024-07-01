@@ -37,6 +37,10 @@ add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
         Measurement.h
         CPUPerf.cpp
         CPUPerf.h
+        Calculator.cpp
+        Calculator.h
+        CalculateMetric.cpp
+        CalculateMetric.h
 )
 
 # Link each target with other targets or add options, etc.

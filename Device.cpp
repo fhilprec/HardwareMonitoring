@@ -2,11 +2,50 @@
 
 #include <utility>
 
-Device::Device(std::string  name, const std::vector<Metric>& metrics): name(std::move(name))
+
+Device::Device(const std::vector<Metric>& rawMetrics, const std::vector<CalculateMetric>& calculatedMetrics,
+               const std::vector<Metric>& userMetrics,
+               std::string name) : allowedMetrics(rawMetrics), allowedCalculatedMetrics(calculatedMetrics),
+                                   name(std::move(name))
 {
-    for (const auto& metric : metrics)
+    for (const auto& allowedMetric : allowedMetrics)
     {
-        if(std::ranges::find(allowedMetrics, metric) == allowedMetrics.end())
+        if (allowedMetric.samplingMethod == CALCULATED) throw std::invalid_argument(
+            std::format("Raw Metric '%s' should not have type 'Calculated'", allowedMetric.name));
+    }
+    initMetrics(userMetrics);
+}
+
+void Device::initMetrics(const std::vector<Metric>& metricsToCount)
+{
+    if (metricsToCount.empty())
+    {
+        userGivenCalculationMetrics.insert(userGivenCalculationMetrics.begin(), allowedCalculatedMetrics.begin(),
+                                           allowedCalculatedMetrics.end());
+        for (const auto& allowedMetric : allowedMetrics)
+        {
+            switch (allowedMetric.samplingMethod)
+            {
+            case ONE_SHOT:
+                userGivenOneShotMetrics.push_back(allowedMetric);
+                break;
+            case TWO_SHOT:
+                userGivenTwoShotMetrics.push_back(allowedMetric);
+                break;
+            case POLLING:
+                userGivenPollingMetrics.push_back(allowedMetric);
+                break;
+            default: throw std::logic_error(std::format("Unexpected Sampling Method for Metric '%s'", allowedMetric.name));
+            }
+        }
+        return;
+    }
+
+    for (const auto& metric : metricsToCount)
+    {
+        if (std::ranges::find(allowedMetrics, metric) == allowedMetrics.end() && std::ranges::find(
+            allowedCalculatedMetrics, metric,
+            [](auto&& computeMetric) { return static_cast<Metric>(computeMetric); }) == allowedCalculatedMetrics.end())
         {
             continue;
         }
@@ -14,14 +53,20 @@ Device::Device(std::string  name, const std::vector<Metric>& metrics): name(std:
         switch (metric.samplingMethod)
         {
         case ONE_SHOT:
-            oneShotMetrics.push_back(metric);
+            userGivenOneShotMetrics.push_back(metric);
             break;
         case TWO_SHOT:
-            twoShotMetrics.push_back(metric);
+            userGivenTwoShotMetrics.push_back(metric);
             break;
         case POLLING:
-            pollingMetrics.push_back(metric);
+            userGivenPollingMetrics.push_back(metric);
             break;
+        case CALCULATED:
+            userGivenCalculationMetrics.push_back(*std::ranges::find(allowedCalculatedMetrics, metric,
+                                                                     [](auto&& computeMetric)
+                                                                     {
+                                                                         return static_cast<Metric>(computeMetric);
+                                                                     }));
         }
     }
 }
@@ -32,30 +77,41 @@ std::vector<std::pair<Metric, Measurement>> Device::getData(const Sampler sample
     switch (sampler)
     {
     case POLLING:
-        for (const auto& pollingMetric : pollingMetrics)
+        for (const auto& pollingMetric : userGivenPollingMetrics)
         {
             result.emplace_back(pollingMetric, fetchMetric(pollingMetric));
         }
         break;
     case ONE_SHOT:
-        for (const auto& pollingMetric : oneShotMetrics)
+        for (const auto& pollingMetric : userGivenOneShotMetrics)
         {
             result.emplace_back(pollingMetric, fetchMetric(pollingMetric));
         }
         break;
     case TWO_SHOT:
-        for (const auto& pollingMetric : twoShotMetrics)
+        for (const auto& pollingMetric : userGivenTwoShotMetrics)
         {
             result.emplace_back(pollingMetric, fetchMetric(pollingMetric));
         }
         break;
+    case CALCULATED:
+        throw std::invalid_argument(
+            "This is not the intended way to get calculcated Metrics, calculated metrics are registered with the device but only calculated after fetching the raw metrics");
     }
     return result;
 }
 
-const std::vector<Metric>& Device::getAllowedMetrics() const
+std::vector<Metric> Device::getAllowedMetrics()
 {
-    return this->allowedMetrics;
+    std::vector<Metric> allAllowedMetrics(allowedMetrics.size() + allowedCalculatedMetrics.size());
+    allAllowedMetrics.insert(allAllowedMetrics.end(), allowedMetrics.begin(), allowedMetrics.end());
+    allAllowedMetrics.insert(allAllowedMetrics.end(), allowedCalculatedMetrics.begin(), allowedCalculatedMetrics.end());
+    return allAllowedMetrics;
+}
+
+const std::vector<CalculateMetric>& Device::getCalculatableMetrics() const
+{
+    return userGivenCalculationMetrics;
 }
 
 const std::string& Device::getName() const

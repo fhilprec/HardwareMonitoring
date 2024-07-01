@@ -7,31 +7,36 @@
 #include <iomanip>
 #include <string>
 
+#include "CalculateMetric.h"
 #include "Measurement.h"
 #include "Metric.h"
 
-#define LOG(x) std::cout << x << std::endl
-
 class Device
 {
+private:
     std::vector<Metric> allowedMetrics;
+    std::vector<CalculateMetric> allowedCalculatedMetrics;
     std::string name;
 
 protected:
-    std::vector<Metric> pollingMetrics;
-    std::vector<Metric> oneShotMetrics;
-    std::vector<Metric> twoShotMetrics;
+    std::vector<Metric> userGivenPollingMetrics;
+    std::vector<Metric> userGivenOneShotMetrics;
+    std::vector<Metric> userGivenTwoShotMetrics;
+    std::vector<CalculateMetric> userGivenCalculationMetrics;
+
+    Device(const std::vector<Metric>& rawMetrics, const std::vector<CalculateMetric>& calculatedMetrics, const std::vector<Metric> &userMetrics, std::string  name);
+    void initMetrics(const std::vector<Metric>& metricsToCount);
 
 public:
+
     virtual ~Device() = default;
-    Device() : Device(""){};
-    explicit Device(std::string name):name(std::move(name)){};
-    Device(std::string  name, const std::vector<Metric>& metrics);
+    Device() = default;
     virtual std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler);
-    virtual Measurement fetchMetric(const Metric &metric) { return Measurement({}); };
+    virtual Measurement fetchMetric(const Metric &metric) { return Measurement({}); }
 
 public:
-    const std::vector<Metric> &getAllowedMetrics() const;
+    std::vector<Metric> getAllowedMetrics() ;
+    const std::vector<CalculateMetric> &getCalculatableMetrics() const;
     const std::string &getName() const;
 
 public:

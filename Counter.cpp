@@ -1,12 +1,10 @@
 #include "Counter.hpp"
 
-Counter::Counter(std::vector<std::unique_ptr<Device>>& devicesToMonitor,
-                 const std::chrono::milliseconds pollingTimeFrame,
-                 std::optional<std::filesystem::path> outputDirectory):
-    counterConfig({std::move(devicesToMonitor), pollingTimeFrame, std::move(outputDirectory)}),
-    outputForDevice(std::unordered_map<Device, Output>(devicesToMonitor.size())),
+Counter::Counter(CounterConfig counterConfig):
+    counterConfig(counterConfig),
+    outputForDevice(std::unordered_map<Device, Output>(counterConfig.devices.size())),
     pollingThread(std::jthread(std::bind_front(&Counter::poll, this))),
-    slowPollingDevices(std::vector<Device>(devicesToMonitor.size()))
+    slowPollingDevices(std::vector<Device>(counterConfig.devices.size()))
 {
     if (counterConfig.outputDirectory.has_value() && !is_directory(counterConfig.outputDirectory.value()))
     {
@@ -16,9 +14,7 @@ Counter::Counter(std::vector<std::unique_ptr<Device>>& devicesToMonitor,
     for (const auto& device : counterConfig.devices)
     {
         OutputConfiguration configForDevice = {
-            ";", false, std::shared_ptr<std::ostream>(&std::cout, [](void*)
-            {
-            })
+            ";", false, std::shared_ptr<std::ostream>(&std::cout, [](void*){})
         };
         if(counterConfig.outputDirectory.has_value()){
             configForDevice.fileMode = true;

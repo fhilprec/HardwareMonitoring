@@ -5,6 +5,7 @@
 
 #include "Device.hpp"
 
+
 enum EventDomain : uint8_t { USER = 0b1, KERNEL = 0b10, HYPERVISOR = 0b100, ALL = 0b111 };
 
 struct event {
@@ -35,8 +36,8 @@ class CPUPerf final : public Device
     std::vector<event> events;
 
 public:
-    CPUPerf() : CPUPerf(getAllowedMetrics()){}
-    explicit CPUPerf(const std::vector<Metric>& metrics);
+    CPUPerf():CPUPerf(std::vector<Metric>()){}
+    explicit CPUPerf(const std::vector<Metric>& metricsToCount);
     ~CPUPerf() override;
 
     std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler) override;

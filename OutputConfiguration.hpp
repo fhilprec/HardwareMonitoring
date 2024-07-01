@@ -1,10 +1,10 @@
+#pragma once
 #include <string>
 #include <ostream>
 #include <utility>
 #include <memory>
 
-class OutputConfiguration{
-public:
+struct OutputConfiguration{
     std::string separator;
     bool fileMode;
     std::shared_ptr<std::ostream> stream_;

@@ -21,7 +21,7 @@ int main() {
     auto fullPath = absolute(outputDirectory);
     std::chrono::milliseconds pollingTime = std::chrono::milliseconds(100);
 
-    Counter counter(devices,pollingTime, fullPath);
+    Counter counter(CounterConfig(devices,pollingTime, fullPath));
 
     counter.start();
 

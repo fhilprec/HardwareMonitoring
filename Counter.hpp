@@ -17,8 +17,8 @@
 
 struct CounterConfig
 {
-    std::vector<std::unique_ptr<Device>> devices;
-    std::chrono::milliseconds pollingTimeFrame;
+    const std::vector<std::unique_ptr<Device>> &devices;
+    const std::chrono::milliseconds &pollingTimeFrame;
     std::optional<std::filesystem::path> outputDirectory;
 };
 
@@ -39,8 +39,12 @@ private:
     std::vector<Device> slowPollingDevices;
 
 public:
-    explicit Counter(std::vector<std::unique_ptr<Device>>& devices) : Counter(devices, std::chrono::milliseconds(500), {}) {}
-    Counter(std::vector<std::unique_ptr<Device>>& devicesToMonitor, std::chrono::milliseconds pollingTimeFrame,std::optional<std::filesystem::path> outputDirectory);
+    explicit Counter(const std::vector<std::unique_ptr<Device>>& devices) : Counter({
+        devices,
+        std::chrono::milliseconds(500),
+        {}
+    }) {}
+    explicit Counter(CounterConfig counterConfig);
 
     void start();
     void stop();
@@ -51,8 +55,6 @@ private:
     void checkPollingTime(const Device& device, const std::chrono::milliseconds& timeForPull);
     void finishPolling()
     {
-        // Check if Calculation needs to happen
 
-        // Read Output for calculations
     }
 };

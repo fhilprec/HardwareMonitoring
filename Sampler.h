@@ -7,7 +7,9 @@ enum Sampler {
     /* Reads both at the start and the end of the process and returns the difference */
     TWO_SHOT,
     /* Reads at an interval */
-    POLLING
+    POLLING,
+    /* Is not read but calculated afterwards */
+    CALCULATED
 };
 
 
