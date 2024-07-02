@@ -1,28 +1,11 @@
 #include "Counter.hpp"
 
-Counter::Counter(CounterConfig counterConfig):
+Counter::Counter(const CounterConfig counterConfig, FileManager& fileManager):
     counterConfig(counterConfig),
-    outputForDevice(std::unordered_map<Device, Output>(counterConfig.devices.size())),
+    fileManager(fileManager),
     pollingThread(std::jthread(std::bind_front(&Counter::poll, this))),
     slowPollingDevices(std::vector<Device>(counterConfig.devices.size()))
 {
-    if (counterConfig.outputDirectory.has_value() && !is_directory(counterConfig.outputDirectory.value()))
-    {
-        throw std::invalid_argument(std::format("Path '{}' is not a directory",
-                                                counterConfig.outputDirectory.value().string()));
-    }
-    for (const auto& device : counterConfig.devices)
-    {
-        OutputConfiguration configForDevice = {
-            ";", false, std::shared_ptr<std::ostream>(&std::cout, [](void*){})
-        };
-        if(counterConfig.outputDirectory.has_value()){
-            configForDevice.fileMode = true;
-            std::filesystem::path filePath = counterConfig.outputDirectory.value().append(std::format("{}.csv",device->getName()));
-            configForDevice.stream_ = std::make_shared<std::ofstream>(std::ofstream(std::ofstream(filePath)));
-        }
-        outputForDevice.emplace(*device, Output(configForDevice));
-    }
 }
 
 void Counter::start()
@@ -37,6 +20,11 @@ void Counter::stop()
     pollingThread.join();
     started = false;
     startCondition.notify_all();
+}
+
+std::vector<Metric> Counter::getAdditionalMetricsAdded()
+{
+    return {TIME_TAKEN_POLLING_METRIC, TIME_METRIC, SAMPLING_METHOD_METRIC};
 }
 
 void Counter::poll(const std::stop_token& stop_token)
@@ -63,10 +51,9 @@ void Counter::poll(const std::stop_token& stop_token)
 
     fetchData(TWO_SHOT);
     fetchData(ONE_SHOT);
-    finishPolling();
 }
 
-void Counter::fetchData(const Sampler sampleMethod)
+void Counter::fetchData(Sampler sampleMethod)
 {
     for (const auto& device : counterConfig.devices)
     {
@@ -84,7 +71,8 @@ void Counter::fetchData(const Sampler sampleMethod)
         {
             deviceData.emplace_back(TIME_TAKEN_POLLING_METRIC, std::format("{} ms", timeForPull.count()));
             deviceData.emplace_back(TIME_METRIC, std::format("{:%Y/%m/%d %T}", startPoll));
-            outputForDevice.at(*device).writeLine(deviceData);
+            deviceData.emplace_back(SAMPLING_METHOD_METRIC, getDisplayForSampler(sampleMethod));
+            fileManager.writeToBuffer(*device, deviceData);
         }
     }
 }

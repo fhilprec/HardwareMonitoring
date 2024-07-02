@@ -12,24 +12,26 @@
 #include <fstream>
 
 #include "Device.hpp"
+#include "FileManager.h"
 #include "Output.hpp"
 
 
 struct CounterConfig
 {
-    const std::vector<std::unique_ptr<Device>> &devices;
+    const std::vector<std::shared_ptr<Device>> &devices;
     const std::chrono::milliseconds &pollingTimeFrame;
-    std::optional<std::filesystem::path> outputDirectory;
 };
+
+static const Metric SAMPLING_METHOD_METRIC = {CALCULATED, "The Sampling Method used"};
+static const Metric TIME_METRIC = {POLLING, "Time of Polling"};
+static const Metric TIME_TAKEN_POLLING_METRIC = {POLLING, "Time Taken for Polling"};
 
 class Counter
 {
 private:
     CounterConfig counterConfig;
 
-    std::unordered_map<Device, Output> outputForDevice;
-    const Metric TIME_METRIC = {POLLING, "Time of Polling"};
-    const Metric TIME_TAKEN_POLLING_METRIC = {POLLING, "Time Taken for Polling"};
+    FileManager &fileManager;
 
     std::jthread pollingThread;
     std::condition_variable startCondition;
@@ -39,22 +41,20 @@ private:
     std::vector<Device> slowPollingDevices;
 
 public:
-    explicit Counter(const std::vector<std::unique_ptr<Device>>& devices) : Counter({
+    Counter(const std::vector<std::shared_ptr<Device>>& devices, FileManager& fileManager) : Counter({
         devices,
-        std::chrono::milliseconds(500),
-        {}
-    }) {}
-    explicit Counter(CounterConfig counterConfig);
+        std::chrono::milliseconds(500)
+    }, fileManager) {}
+    Counter(CounterConfig counterConfig, FileManager& fileManager);
 
     void start();
     void stop();
+
+public:
+    static std::vector<Metric> getAdditionalMetricsAdded();
 
 private:
     void poll(const std::stop_token& stop_token);
     void fetchData(Sampler sampleMethod);
     void checkPollingTime(const Device& device, const std::chrono::milliseconds& timeForPull);
-    void finishPolling()
-    {
-
-    }
 };

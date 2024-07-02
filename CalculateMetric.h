@@ -8,8 +8,9 @@
 class Device;
 
 class CalculateMetric : public Metric{
-    std::function<Measurement(std::unordered_map<Device, std::unordered_map<Sampler, std::vector<std::pair<Metric, Measurement>>>>)> calculateMetric;
+public:
+    std::function<Measurement(std::unordered_map<std::string, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>> )> calculateMetric;
 
 public:
-    CalculateMetric(const std::string& name, const std::function<Measurement(std::unordered_map<Device, std::unordered_map<Sampler, std::vector<std::pair<Metric, Measurement>>>>)>& calculateMetric);
+    CalculateMetric(const std::string& name, std::function<Measurement(std::unordered_map<std::string, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>> )> calculateMetric);
 };

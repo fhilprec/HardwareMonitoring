@@ -8,9 +8,10 @@
 struct Metric {
     Sampler samplingMethod;
     std::string name;
+    bool raw;
 
     Metric() = default;
-    Metric(const Sampler samplingMethod, std::string name) : samplingMethod(samplingMethod), name(std::move(name)){}
+    Metric(const Sampler samplingMethod, std::string name, const bool raw = false) : samplingMethod(samplingMethod), name(std::move(name)), raw(raw){}
 
     bool operator==(const Metric &rhs) const {
         return samplingMethod == rhs.samplingMethod &&

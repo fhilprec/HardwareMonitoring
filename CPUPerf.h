@@ -31,8 +31,6 @@ struct event {
 class CPUPerf final : public Device
 {
     bool first = true;
-    std::chrono::time_point<std::chrono::steady_clock> startTime;
-    std::chrono::time_point<std::chrono::steady_clock> stopTime;
     std::vector<event> events;
 
 public:
@@ -43,7 +41,13 @@ public:
     std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler) override;
     Measurement fetchMetric(const Metric &metric) override;
 
-    void registerCounter(uint64_t type, uint64_t eventID, EventDomain domain = ALL);
+    void registerCounter(uint64_t type, uint64_t eventID);
     void start();
     void stop();
+    static Measurement calculateMetric(
+        const std::unordered_map<std::string, std::unordered_map<
+                                     Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>>& data,
+        const Metric& rawMetric);
+    static void parseData(const std::vector<std::pair<Metric, Measurement>>& row, const Metric& rawMetric, uint64_t& value, uint64_t&
+                          time_enabled, uint64_t& time_running);
 };

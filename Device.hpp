@@ -24,7 +24,7 @@ protected:
     std::vector<Metric> userGivenTwoShotMetrics;
     std::vector<CalculateMetric> userGivenCalculationMetrics;
 
-    Device(const std::vector<Metric>& rawMetrics, const std::vector<CalculateMetric>& calculatedMetrics, const std::vector<Metric> &userMetrics, std::string  name);
+    Device(const std::vector<Metric>& metrics, const std::vector<CalculateMetric>& calculatedMetrics, const std::vector<Metric> &userMetrics, std::string  name);
     void initMetrics(const std::vector<Metric>& metricsToCount);
 
 public:
@@ -32,11 +32,12 @@ public:
     virtual ~Device() = default;
     Device() = default;
     virtual std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler);
-    virtual Measurement fetchMetric(const Metric &metric) { return Measurement({}); }
+    virtual Measurement fetchMetric(const Metric &metric) { return {}; }
 
 public:
-    std::vector<Metric> getAllowedMetrics() ;
+    std::vector<Metric> getAllowedMetrics() const;
     const std::vector<CalculateMetric> &getCalculatableMetrics() const;
+    std::vector<Metric> getUserMetrics() const;
     const std::string &getName() const;
 
 public:

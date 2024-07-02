@@ -11,29 +11,43 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device(
-    {Metric(TWO_SHOT, "cycles"),
-        Metric(TWO_SHOT, "kcycles"),
-        Metric(TWO_SHOT, "instructions"),
-        Metric(TWO_SHOT, "L1-misses"),
-        Metric(TWO_SHOT, "LLC-misses"),
-        Metric(TWO_SHOT, "branch-misses")},{},metricsToCount,"CPUPerf")
+static const std::vector RAW_METRICS{
+    Metric(TWO_SHOT, "raw_cycles", true),
+    Metric(TWO_SHOT, "raw_kcycles", true),
+    Metric(TWO_SHOT, "raw_instructions", true),
+    Metric(TWO_SHOT, "raw_L1-misses", true),
+    Metric(TWO_SHOT, "raw_LLC-misses", true),
+    Metric(TWO_SHOT, "raw_branch-misses", true)
+};
+
+static const std::vector CALCULATED_METRICS{
+    CalculateMetric("cycles", [](auto data){ return CPUPerf::calculateMetric(data, RAW_METRICS[0]);}),
+    CalculateMetric("kcycles", [](auto data){ return CPUPerf::calculateMetric(data, RAW_METRICS[1]);}),
+    CalculateMetric("instructions", [](auto data){ return CPUPerf::calculateMetric(data, RAW_METRICS[2]);}),
+    CalculateMetric("L1-misses", [](auto data){ return CPUPerf::calculateMetric(data, RAW_METRICS[3]);}),
+    CalculateMetric("LLC-misses", [](auto data){ return CPUPerf::calculateMetric(data, RAW_METRICS[4]);}),
+    CalculateMetric("branch-misses", [](auto data){ return CPUPerf::calculateMetric(data, RAW_METRICS[5]);})
+};
+
+CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device(RAW_METRICS, CALCULATED_METRICS, metricsToCount,"CPUPerf")
 {
     for (auto& metric: userGivenTwoShotMetrics) {
-        if(metric.name == "cycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
-        if(metric.name == "kcycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES, KERNEL);
-        if(metric.name == "instructions") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS);
-        if(metric.name == "L1-misses") registerCounter(PERF_TYPE_HW_CACHE, PERF_COUNT_HW_CACHE_L1D|(PERF_COUNT_HW_CACHE_OP_READ<<8)|(PERF_COUNT_HW_CACHE_RESULT_MISS<<16));
-        if(metric.name == "LLC-misses") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CACHE_MISSES);
-        if(metric.name == "branch-misses") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_BRANCH_MISSES);
-        if(metric.name == "task-clock") registerCounter(PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK);
+        if(metric.name == "raw_cycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
+        if(metric.name == "raw_kcycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
+        if(metric.name == "raw_instructions") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS);
+        if(metric.name == "raw_L1-misses") registerCounter(PERF_TYPE_HW_CACHE, PERF_COUNT_HW_CACHE_L1D|(PERF_COUNT_HW_CACHE_OP_READ<<8)|(PERF_COUNT_HW_CACHE_RESULT_MISS<<16));
+        if(metric.name == "raw_LLC-misses") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CACHE_MISSES);
+        if(metric.name == "raw_branch-misses") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_BRANCH_MISSES);
+        if(metric.name == "raw_task-clock") registerCounter(PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK);
     }
 
 
-    for (unsigned i=0; i<events.size(); i++) {
+    for (unsigned i = 0; i < events.size(); i++)
+    {
         auto& event = events[i];
         event.fd = static_cast<int>(syscall(__NR_perf_event_open, &event.pe, 0, -1, -1, 0));
-        if (event.fd < 0) {
+        if (event.fd < 0)
+        {
             std::cerr << "Error opening counters" << std::endl;
             events.resize(0);
             return;
@@ -42,15 +56,7 @@ CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device(
 }
 
 
-
-CPUPerf::~CPUPerf()
-{
-    for (auto& event : events) {
-        close(event.fd);
-    }
-}
-
-void CPUPerf::registerCounter(uint64_t type, uint64_t eventID, EventDomain domain)
+void CPUPerf::registerCounter(uint64_t type, uint64_t eventID)
 {
     events.emplace_back();
     auto& event = events.back();
@@ -68,51 +74,78 @@ void CPUPerf::registerCounter(uint64_t type, uint64_t eventID, EventDomain domai
     pe.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
 }
 
-void CPUPerf::start()
-{
-    for (unsigned i=0; i<events.size(); i++) {
-        auto& event = events[i];
-        ioctl(event.fd, PERF_EVENT_IOC_RESET, 0);
-        ioctl(event.fd, PERF_EVENT_IOC_ENABLE, 0);
-        if (read(event.fd, &event.prev, sizeof(uint64_t) * 3) != sizeof(uint64_t) * 3)
-            std::cerr << "Error reading counter " << userGivenTwoShotMetrics[i].name << std::endl;
-    }
-    startTime = std::chrono::steady_clock::now();
-}
-
-void CPUPerf::stop()
-{
-    stopTime = std::chrono::steady_clock::now();
-    for (unsigned i=0; i<events.size(); i++) {
-        auto& event = events[i];
-        if (read(event.fd, &event.data, sizeof(uint64_t) * 3) != sizeof(uint64_t) * 3)
-            std::cerr << "Error reading counter " << userGivenTwoShotMetrics[i].name << std::endl;
-        ioctl(event.fd, PERF_EVENT_IOC_DISABLE, 0);
-    }
-}
-
 std::vector<std::pair<Metric, Measurement>> CPUPerf::getData(const Sampler sampler)
 {
-    if (sampler != TWO_SHOT) {
-        return {};
-    }
 
-    if (first)
-    {
-        first = false;
-        start();
-        return {};
-    }
-
-    stop();
-    return Device::getData(sampler);
+    auto result  = Device::getData(sampler);
+    if constexpr (TWO_SHOT) first = false;
+    return  result;
 }
 
 Measurement CPUPerf::fetchMetric(const Metric& metric)
 {
     std::vector<std::pair<Metric, Measurement>> result;
-    const int index = std::distance(userGivenTwoShotMetrics.begin(),std::ranges::find(userGivenTwoShotMetrics,metric));
-    const auto& event = events[index];
-    const std::string valueString = std::to_string(first ? 0 : event.readCounter());
+    const int index = std::distance(userGivenTwoShotMetrics.begin(),
+                                    std::ranges::find(userGivenTwoShotMetrics, metric));
+    auto& event = events[index];
+    if(first)
+    {
+        ioctl(event.fd, PERF_EVENT_IOC_RESET, 0);
+        ioctl(event.fd, PERF_EVENT_IOC_ENABLE, 0);
+    }
+    read(event.fd, &event.data, sizeof(uint64_t) * 3);
+    if(!first)
+    {
+        ioctl(event.fd, PERF_EVENT_IOC_DISABLE, 0);
+    }
+    const std::string valueString = std::format("{}|{}|{}",event.data.value,event.data.time_enabled,event.data.time_running);
     return Measurement(valueString);
+}
+
+
+
+Measurement CPUPerf::calculateMetric(
+    const std::unordered_map<std::string, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>>& data, const Metric& rawMetric)
+{
+    uint64_t valuePrev, timeEnabledPrev, timeRunningPrev;
+    parseData(data.at("CPUPerf").at(TWO_SHOT).at(0), rawMetric, valuePrev, timeEnabledPrev, timeRunningPrev);
+
+    uint64_t valueAfter, timeEnabledAfter, timeRunningAfter;
+    parseData(data.at("CPUPerf").at(TWO_SHOT).at(1), rawMetric, valueAfter, timeEnabledAfter, timeRunningAfter);
+
+    const double multiplexingCorrection = static_cast<double>(timeEnabledAfter- timeEnabledPrev) / (static_cast<double>(timeRunningAfter - timeRunningPrev)+0.01);
+    return Measurement(std::format("{}",static_cast<double>(valueAfter - valuePrev) * multiplexingCorrection));
+}
+
+void CPUPerf::parseData(const std::vector<std::pair<Metric, Measurement>>& row, const Metric& rawMetric, uint64_t &value,
+    uint64_t &time_enabled, uint64_t &time_running)
+{
+    Measurement rawMeasurement;
+    for (const auto &   [metric, measurement] : row)
+    {
+        if(metric == rawMetric)
+        {
+            rawMeasurement = measurement;
+            continue;
+        }
+    }
+    std::stringstream ss(rawMeasurement.value);
+    std::string currentLine;
+
+    getline(ss,currentLine,'|');
+    value = std::stoull(currentLine);
+
+    getline(ss,currentLine,'|');
+    time_enabled = std::stoull(currentLine);
+
+    getline(ss,currentLine,'|');
+    time_running = std::stoull(currentLine);
+}
+
+CPUPerf::~CPUPerf()
+{
+    for (auto& event : events)
+    {
+        close(event.fd);
+    }
 }

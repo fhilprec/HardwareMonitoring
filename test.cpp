@@ -2,6 +2,7 @@
 #include "Device.hpp"
 #include "Counter.hpp"
 #include "CPUPerf.h"
+#include "Monitor.h"
 //sysctl -w kernel.perf_event_paranoid=-1
 //g++ test.cpp ; ./a.out ; rm a.out;
 
@@ -15,17 +16,18 @@ int main() {
      }
      cpu.printVector(cpu.getData());*/
 
-    std::vector<std::unique_ptr<Device>> devices;
+
+    std::vector<std::shared_ptr<Device>> devices;
     devices.emplace_back(new CPUPerf());
     std::filesystem::path outputDirectory("testOutput");
     auto fullPath = absolute(outputDirectory);
     std::chrono::milliseconds pollingTime = std::chrono::milliseconds(100);
 
-    Counter counter(CounterConfig(devices,pollingTime, fullPath));
+    Monitor monitor(devices, outputDirectory);
 
-    counter.start();
+    monitor.start();
 
-    long long max=0;
+    /*long long max=0;
     int maxI=0;
     for(int i=1;i<(1<<24);i++) {
         long long ans = i;
@@ -39,8 +41,13 @@ int main() {
             max=steps;
             maxI = i;
         }
+    }*/
+    int i = 0;
+    for (int i = 0; i < 100; i++) {
+        i = i + 1;
+        i = i * i;
     }
-    std::cout << "longest Collatz Path to 1: " << max << ", starting with number: " << maxI  <<std::endl;
-    counter.stop();
+    //std::cout << "longest Collatz Path to 1: " << max << ", starting with number: " << maxI  <<std::endl;
+    monitor.stop();
 }
 

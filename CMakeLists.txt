@@ -41,6 +41,10 @@ add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
         Calculator.h
         CalculateMetric.cpp
         CalculateMetric.h
+        Monitor.cpp
+        Monitor.h
+        FileManager.cpp
+        FileManager.h
 )
 
 # Link each target with other targets or add options, etc.
