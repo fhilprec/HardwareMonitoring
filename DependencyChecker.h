@@ -21,25 +21,76 @@ class DependencyChecker {
             deviceNames.insert(device.getName());
         }
 
-        std::string errorMessage;
+        std::string errorMessages;
 
         for (const auto &[device, wantedMetrics]: wantedMetricsByAllDevices){
             for (const auto &[wantedDeviceName, wantedMetricsForDevice]: wantedMetrics){
                 if(!deviceNames.contains(wantedDeviceName)){
-                    errorMessage.append(std::format("Metrics wanted from Device '%s' for Calculation of Metrics by Device '%s' but Device '%s' is not registered for Measurement.\n", wantedDeviceName, device.getName(), wantedDeviceName));
+                    errorMessages.append(std::format("Metrics wanted from Device '%s' for Calculation of Metrics by Device '%s' but Device '%s' is not registered for Measurement.\n", wantedDeviceName, device.getName(), wantedDeviceName));
                 }
             }
         }
 
-        if(!errorMessage.empty()){
-            throw std::logic_error(std::format("Some Devices are Missing for Measurement:\n%s", errorMessage));
+        if(!errorMessages.empty()){
+            throw std::logic_error(std::format("Some Devices are Missing for Measurement:\n%s", errorMessages));
+        }
+    }
+    
+    static bool deviceHasWantedMetric(const Device& device, const Metric& metric) {
+        const std::vector<Metric> &allowedMetrics = device.getAllowedMetrics();
+        auto possibleMetric = std::find(allowedMetrics.begin(), allowedMetrics.end(), metric);
+        if(possibleMetric == std::end(allowedMetrics)){
+            return false;
+        }
+        
+        Metric foundMetric = *possibleMetric;
+        if(foundMetric.raw){
+            return true;
+        }
+
+        const std::vector<Metric> &chosenMetrics = device.getUserMetrics();
+        return std::find(chosenMetrics.begin(), chosenMetrics.end(), foundMetric) != std::end(chosenMetrics);
+
+    }
+public:
+    static void checkDependenciesBetweenDevicesForCalculatedMetrics(const std::vector<std::shared_ptr<Device>>& devices){
+        std::unordered_map<Device, std::unordered_map<std::string, std::vector<Metric>>> wantedMetricsByAllDevices = getAllWantedMetricsByDevices(devices);
+        allDevicesWantedExist(wantedMetricsByAllDevices);
+
+        std::unordered_map<std::string, Device> deviceByDeviceName(wantedMetricsByAllDevices.size());
+        for (const auto &[device, wantedMetrics]: wantedMetricsByAllDevices)deviceByDeviceName.emplace(device.getName(),device);
+
+        std::string errorMessages;
+        
+        for (const auto &[device, wantedMetrics]: wantedMetricsByAllDevices){
+            for (const auto &[wantedDeviceName, wantedMetricsForDevice]: wantedMetrics){
+                Device wantedDevice = deviceByDeviceName.at(wantedDeviceName);
+                for (const auto &wantedMetric: wantedMetricsForDevice){
+                    if(!deviceHasWantedMetric(wantedDevice, wantedMetric)){
+                        errorMessages.append(std::format("Metric '%s' of Device '%s' wanted from Device '%s', but was not registered for Measurement", wantedMetric.name, wantedDevice.getName(), device.getName()));
+                    }
+                }
+            }
+        }
+        
+        if(!errorMessages.empty()){
+            throw std::logic_error(std::format("Some Metrics used by other Devices for Calculation are Missing for Measurement:\n%s", errorMessages));
         }
     }
 
-    static void checkDependenciesBetweenDevicesForCalculatedMetrics(const std::unordered_map<Device, std::unordered_map<std::string, std::vector<Metric>>>& wantedMetricsByAllDevices){
-        allDevicesWantedExist(wantedMetricsByAllDevices);
-
-
+    static std::unordered_map<Device, std::unordered_map<std::string, std::vector<Metric>>>
+    getAllWantedMetricsByDevices(const std::vector<std::shared_ptr<Device>> &devices) {
+        std::unordered_map<Device, std::unordered_map<std::string, std::vector<Metric>>> wantedMetricsByAllDevices;
+        for (const auto& device: devices){
+            std::unordered_map<std::string, std::vector<Metric>> wantedMetricByDevice;
+            for (const auto &calculatableMetric: device->getCalculatableMetrics()){
+                for (const auto &[wantedDeviceName, wantedMetrics]: calculatableMetric.wantedMetricsByDeviceName){
+                    auto& metrics = wantedMetricsByAllDevices[*device][wantedDeviceName];
+                    metrics.insert(metrics.end(), wantedMetrics.begin(), wantedMetrics.end());
+                }
+            }
+        }
+        return wantedMetricsByAllDevices;
     }
 };
 

@@ -7,6 +7,7 @@
 #include "Calculator.h"
 #include "Counter.hpp"
 #include "FileManager.h"
+#include "DependencyChecker.h"
 
 
 class Monitor {
@@ -22,6 +23,7 @@ public:
     explicit Monitor(const std::vector<std::shared_ptr<Device>>& devices, const std::optional<std::filesystem::path>& outputDirectory)
         : devices(devices), counter(Counter(devices, fileManager)), fileManager(FileManager(devices, outputDirectory)), calculator(Calculator(devices))
     {
+        DependencyChecker::checkDependenciesBetweenDevicesForCalculatedMetrics(devices);
     }
 
     void start();
