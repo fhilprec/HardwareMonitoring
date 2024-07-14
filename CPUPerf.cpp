@@ -21,12 +21,18 @@ static const std::vector RAW_METRICS{
 };
 
 static const std::vector CALCULATED_METRICS{
-    CalculateMetric("cycles", [](auto data){ return CPUPerf::calculateMetric(data, RAW_METRICS[0]);}),
-    CalculateMetric("kcycles", [](auto data){ return CPUPerf::calculateMetric(data, RAW_METRICS[1]);}),
-    CalculateMetric("instructions", [](auto data){ return CPUPerf::calculateMetric(data, RAW_METRICS[2]);}),
-    CalculateMetric("L1-misses", [](auto data){ return CPUPerf::calculateMetric(data, RAW_METRICS[3]);}),
-    CalculateMetric("LLC-misses", [](auto data){ return CPUPerf::calculateMetric(data, RAW_METRICS[4]);}),
-    CalculateMetric("branch-misses", [](auto data){ return CPUPerf::calculateMetric(data, RAW_METRICS[5]);})
+        CalculateMetric("cycles", [](auto data) { return CPUPerf::calculateMetric(data, RAW_METRICS[0]); },
+                        std::unordered_map<Device, std::vector<Metric>>()),
+    CalculateMetric("kcycles", [](auto data) { return CPUPerf::calculateMetric(data, RAW_METRICS[1]); },
+                    std::unordered_map<Device, std::vector<Metric>>()),
+    CalculateMetric("instructions", [](auto data) { return CPUPerf::calculateMetric(data, RAW_METRICS[2]); },
+                    std::unordered_map<Device, std::vector<Metric>>()),
+    CalculateMetric("L1-misses", [](auto data) { return CPUPerf::calculateMetric(data, RAW_METRICS[3]); },
+                    std::unordered_map<Device, std::vector<Metric>>()),
+    CalculateMetric("LLC-misses", [](auto data) { return CPUPerf::calculateMetric(data, RAW_METRICS[4]); },
+                    std::unordered_map<Device, std::vector<Metric>>()),
+    CalculateMetric("branch-misses", [](auto data) { return CPUPerf::calculateMetric(data, RAW_METRICS[5]); },
+                    std::unordered_map<Device, std::vector<Metric>>())
 };
 
 CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device(RAW_METRICS, CALCULATED_METRICS, metricsToCount,"CPUPerf")

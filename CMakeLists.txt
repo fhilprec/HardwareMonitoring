@@ -45,6 +45,8 @@ add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
         Monitor.h
         FileManager.cpp
         FileManager.h
+        DependencyChecker.cpp
+        DependencyChecker.h
 )
 
 # Link each target with other targets or add options, etc.
