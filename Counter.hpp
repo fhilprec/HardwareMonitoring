@@ -18,7 +18,7 @@
 
 struct CounterConfig
 {
-    const std::vector<std::shared_ptr<Device>> &devices;
+    const std::vector<std::shared_ptr<IDevice>> &devices;
     const std::chrono::milliseconds &pollingTimeFrame;
 };
 
@@ -38,10 +38,10 @@ private:
     std::mutex startLock;
     bool started = false;
 
-    std::vector<Device> slowPollingDevices;
+    std::vector<std::shared_ptr<IDevice>> slowPollingDevices;
 
 public:
-    Counter(const std::vector<std::shared_ptr<Device>>& devices, FileManager& fileManager) : Counter({
+    Counter(const std::vector<std::shared_ptr<IDevice>>& devices, FileManager& fileManager) : Counter({
         devices,
         std::chrono::milliseconds(500)
     }, fileManager) {}
@@ -56,5 +56,5 @@ public:
 private:
     void poll(const std::stop_token& stop_token);
     void fetchData(Sampler sampleMethod);
-    void checkPollingTime(const Device& device, const std::chrono::milliseconds& timeForPull);
+    void checkPollingTime(const std::shared_ptr<IDevice>& device, const std::chrono::milliseconds& timeForPull);
 };

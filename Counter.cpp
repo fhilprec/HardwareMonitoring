@@ -4,7 +4,7 @@ Counter::Counter(const CounterConfig counterConfig, FileManager& fileManager):
     counterConfig(counterConfig),
     fileManager(fileManager),
     pollingThread(std::jthread(std::bind_front(&Counter::poll, this))),
-    slowPollingDevices(std::vector<Device>(counterConfig.devices.size()))
+    slowPollingDevices(std::vector<std::shared_ptr<IDevice>>(counterConfig.devices.size()))
 {
 }
 
@@ -64,7 +64,7 @@ void Counter::fetchData(Sampler sampleMethod)
         auto timeForPull = std::chrono::duration_cast<std::chrono::milliseconds>(endPoll - startPoll);
 
 #if sampleMethod == POLLING
-        checkPollingTime(*device, timeForPull);
+        checkPollingTime(device, timeForPull);
 #endif
 
         if (!deviceData.empty())
@@ -72,19 +72,19 @@ void Counter::fetchData(Sampler sampleMethod)
             deviceData.emplace_back(TIME_TAKEN_POLLING_METRIC, std::format("{} ms", timeForPull.count()));
             deviceData.emplace_back(TIME_METRIC, std::format("{:%Y/%m/%d %T}", startPoll));
             deviceData.emplace_back(SAMPLING_METHOD_METRIC, getDisplayForSampler(sampleMethod));
-            fileManager.writeToBuffer(*device, deviceData);
+            fileManager.writeToBuffer(device, deviceData);
         }
     }
 }
 
-void Counter::checkPollingTime(const Device& device, const std::chrono::milliseconds& timeForPull)
+void Counter::checkPollingTime(const std::shared_ptr<IDevice>& device, const std::chrono::milliseconds& timeForPull)
 {
-    const bool deviceNotWarned = std::ranges::find(slowPollingDevices, device) != slowPollingDevices.end();
+    const bool deviceNotWarned = std::ranges::find(slowPollingDevices.begin(), slowPollingDevices.end(), device) != slowPollingDevices.end();
 
     if (deviceNotWarned && timeForPull * counterConfig.devices.size() > counterConfig.pollingTimeFrame)
     {
         std::cerr << "Polling Time Window of " << counterConfig.pollingTimeFrame.count() << "ms may get skipped";
-        std::cerr << "Device '" << device.getName() << "' took " << timeForPull.count() <<
+        std::cerr << "Device '" << device->getName() << "' took " << timeForPull.count() <<
             "ms for Poll, expecting Poll to get skipped";
         slowPollingDevices.push_back(device);
     }

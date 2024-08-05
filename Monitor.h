@@ -12,7 +12,7 @@
 
 class Monitor {
 private:
-    std::vector<std::shared_ptr<Device>> devices;
+    std::vector<std::shared_ptr<IDevice>> devices;
 
     Counter counter;
     Calculator calculator;
@@ -20,7 +20,7 @@ private:
 
     bool running = false;
 public:
-    explicit Monitor(const std::vector<std::shared_ptr<Device>>& devices, const std::optional<std::filesystem::path>& outputDirectory)
+    explicit Monitor(const std::vector<std::shared_ptr<IDevice>>& devices, const std::optional<std::filesystem::path>& outputDirectory)
         : devices(devices), counter(Counter(devices, fileManager)), fileManager(FileManager(devices, outputDirectory)), calculator(Calculator(devices))
     {
         DependencyChecker::checkDependenciesBetweenDevicesForCalculatedMetrics(devices);

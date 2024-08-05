@@ -11,33 +11,24 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-static const std::vector RAW_METRICS{
+static const std::vector METRICS{
     Metric(TWO_SHOT, "raw_cycles", true),
     Metric(TWO_SHOT, "raw_kcycles", true),
     Metric(TWO_SHOT, "raw_instructions", true),
     Metric(TWO_SHOT, "raw_L1-misses", true),
     Metric(TWO_SHOT, "raw_LLC-misses", true),
-    Metric(TWO_SHOT, "raw_branch-misses", true)
+    Metric(TWO_SHOT, "raw_branch-misses", true),
+    Metric(CALCULATED, "cycles", false),
+    Metric(CALCULATED, "kcycles", false),
+    Metric(CALCULATED, "instructions", false),
+    Metric(CALCULATED, "L1-misses", false),
+    Metric(CALCULATED, "LLC-misses", false),
+    Metric(CALCULATED, "branch-misses", false)
 };
 
-static const std::vector CALCULATED_METRICS{
-        CalculateMetric("cycles", [](auto data) { return CPUPerf::calculateMetric(data, RAW_METRICS[0]); },
-                        std::unordered_map<Device, std::vector<Metric>>()),
-    CalculateMetric("kcycles", [](auto data) { return CPUPerf::calculateMetric(data, RAW_METRICS[1]); },
-                    std::unordered_map<Device, std::vector<Metric>>()),
-    CalculateMetric("instructions", [](auto data) { return CPUPerf::calculateMetric(data, RAW_METRICS[2]); },
-                    std::unordered_map<Device, std::vector<Metric>>()),
-    CalculateMetric("L1-misses", [](auto data) { return CPUPerf::calculateMetric(data, RAW_METRICS[3]); },
-                    std::unordered_map<Device, std::vector<Metric>>()),
-    CalculateMetric("LLC-misses", [](auto data) { return CPUPerf::calculateMetric(data, RAW_METRICS[4]); },
-                    std::unordered_map<Device, std::vector<Metric>>()),
-    CalculateMetric("branch-misses", [](auto data) { return CPUPerf::calculateMetric(data, RAW_METRICS[5]); },
-                    std::unordered_map<Device, std::vector<Metric>>())
-};
-
-CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device(RAW_METRICS, CALCULATED_METRICS, metricsToCount,"CPUPerf")
+CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device<CPUPerf>(metricsToCount)
 {
-    for (auto& metric: userGivenTwoShotMetrics) {
+    for (auto& metric: Device<CPUPerf>::getUserMetrics()) {
         if(metric.name == "raw_cycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
         if(metric.name == "raw_kcycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
         if(metric.name == "raw_instructions") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS);
@@ -83,7 +74,7 @@ void CPUPerf::registerCounter(uint64_t type, uint64_t eventID)
 std::vector<std::pair<Metric, Measurement>> CPUPerf::getData(const Sampler sampler)
 {
 
-    auto result  = Device::getData(sampler);
+    auto result  = Device<CPUPerf>::getData(sampler);
     if constexpr (TWO_SHOT) first = false;
     return  result;
 }
@@ -148,10 +139,22 @@ void CPUPerf::parseData(const std::vector<std::pair<Metric, Measurement>>& row, 
     time_running = std::stoull(currentLine);
 }
 
-CPUPerf::~CPUPerf()
-{
+
+std::unordered_map<std::string, Metric> CPUPerf::getAllDeviceMetricsByName() {
+    std::unordered_map<std::string,Metric> result(METRICS.size());
+    for (const auto &metric: METRICS){
+        result.emplace(metric.name, metric);
+    }
+    return result;
+}
+
+CPUPerf::~CPUPerf() {
     for (auto& event : events)
     {
         close(event.fd);
     }
+}
+
+std::string CPUPerf::getDeviceName() {
+    return "CPUPerf";
 }

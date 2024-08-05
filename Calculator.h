@@ -8,10 +8,10 @@
 
 
 class Calculator {
-    std::vector<std::shared_ptr<Device>> devicesWithCalculations;
+    std::vector<std::shared_ptr<IDevice>> devicesWithCalculations;
 
 public:
-    explicit Calculator(const std::vector<std::shared_ptr<Device>>& devices_with_calculations)
+    explicit Calculator(const std::vector<std::shared_ptr<IDevice>>& devices_with_calculations)
         : devicesWithCalculations(devices_with_calculations)
     {
     }
@@ -23,7 +23,7 @@ public:
         {
             res.emplace(device->getName(),std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>());
 
-            std::vector<std::vector<std::pair<Metric, Measurement>>> rawResults = fileManager.readAllFromBuffer(*device);
+            std::vector<std::vector<std::pair<Metric, Measurement>>> rawResults = fileManager.readAllFromBuffer(device);
             if(rawResults.empty()) continue;
 
             for (const auto & line : rawResults)
@@ -37,25 +37,25 @@ public:
 
     void calculateAndWrite(FileManager fileManager)
     {
-        std::unordered_map<Device, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>> res;
+        std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>> res;
         std::unordered_map<std::string, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>> rawMeasurementsByDeviceBySamplingMethod = getRawMeasurementsOfDevices(fileManager);
         for (const auto & device : devicesWithCalculations)
         {
             std::vector<std::pair<Metric, Measurement>> calculatedMetrics;
-            for (const auto & calculatableMetric : device->getCalculatableMetrics())
+            for (const auto & metric : device->getUserMetrics())
             {
-
-                auto res = calculatableMetric.calculateMetric(rawMeasurementsByDeviceBySamplingMethod);
-                calculatedMetrics.emplace_back(calculatableMetric, res);
+                if(metric.samplingMethod == CALCULATED) {
+                    // TODO Calculate Metric
+                }
             }
             calculatedMetrics.emplace_back(TIME_METRIC, std::format("{:%Y/%m/%d %T}", std::chrono::system_clock::now()));
             calculatedMetrics.emplace_back(SAMPLING_METHOD_METRIC, getDisplayForSampler(CALCULATED));
-            res[*device][CALCULATED].push_back(calculatedMetrics);
+            res[device][CALCULATED].push_back(calculatedMetrics);
         }
 
         for (const auto & device : devicesWithCalculations)
         {
-            res[*device].insert(rawMeasurementsByDeviceBySamplingMethod[device->getName()].begin(), rawMeasurementsByDeviceBySamplingMethod[device->getName()].end());
+            res[device].insert(rawMeasurementsByDeviceBySamplingMethod[device->getName()].begin(), rawMeasurementsByDeviceBySamplingMethod[device->getName()].end());
         }
 
         fileManager.save(res);

@@ -20,15 +20,9 @@ struct event {
     int fd;
     read_format prev;
     read_format data;
-
-    double readCounter() const
-    {
-        const double multiplexingCorrection = static_cast<double>(data.time_enabled - prev.time_enabled) / static_cast<double>(data.time_running - prev.time_running);
-        return static_cast<double>(data.value - prev.value) * multiplexingCorrection;
-    }
 };
 
-class CPUPerf final : public Device
+class CPUPerf  : public Device<CPUPerf>
 {
     bool first = true;
     std::vector<event> events;
@@ -38,12 +32,13 @@ public:
     explicit CPUPerf(const std::vector<Metric>& metricsToCount);
     ~CPUPerf() override;
 
-    std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler) override;
-    Measurement fetchMetric(const Metric &metric) override;
+    std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler) override ;
+    Measurement fetchMetric(const Metric &metric) override ;
+
+    static std::string getDeviceName();
+    static std::unordered_map<std::string,Metric> getAllDeviceMetricsByName();
 
     void registerCounter(uint64_t type, uint64_t eventID);
-    void start();
-    void stop();
     static Measurement calculateMetric(
         const std::unordered_map<std::string, std::unordered_map<
                                      Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>>& data,

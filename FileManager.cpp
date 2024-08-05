@@ -2,7 +2,7 @@
 
 #include "Counter.hpp"
 
-FileManager::FileManager(const std::vector<std::shared_ptr<Device>>& devices,
+FileManager::FileManager(const std::vector<std::shared_ptr<IDevice>>& devices,
                          const std::optional<std::filesystem::path>& outputDirectory) : outputDirectory(outputDirectory)
 {
     if (outputDirectory.has_value() && !is_directory(outputDirectory.value()))
@@ -15,14 +15,14 @@ FileManager::FileManager(const std::vector<std::shared_ptr<Device>>& devices,
     if (!is_directory(tempPath)) create_directory(tempPath);
     for (const auto& device : devices)
     {
-        filePathsForDevices.emplace(*device, tempPath.append(std::format("{}_raw.csv", device->getName())));
+        filePathsForDevices.emplace(device, tempPath.append(std::format("{}_raw.csv", device->getName())));
     }
     for (const auto& [device, deviceFilePath] : filePathsForDevices)
     {
         auto ofstream = std::make_shared<std::ofstream>(std::ofstream(deviceFilePath, std::ios_base::trunc));
         tempDataForDevices.emplace(device, ofstream);
 
-        std::vector<Metric> userMetrics = device.getUserMetrics();
+        std::vector<Metric> userMetrics = device->getUserMetrics();
         std::vector<Metric> counterMetrics = Counter::getAdditionalMetricsAdded();
 
         std::vector<Metric> headerMetrics;
@@ -41,13 +41,13 @@ FileManager::FileManager(const std::vector<std::shared_ptr<Device>>& devices,
     }
 }
 
-void FileManager::writeToBuffer(const Device& device, const std::vector<std::pair<Metric, Measurement>>& line)
+void FileManager::writeToBuffer(const std::shared_ptr<IDevice>& device, const std::vector<std::pair<Metric, Measurement>>& line)
 {
     const std::string stringLine = lineToString(line);
     tempDataForDevices.at(device)->write(stringLine.c_str(), stringLine.size());
 }
 
-std::vector<std::vector<std::pair<Metric, Measurement>>> FileManager::readAllFromBuffer(const Device& device) const
+std::vector<std::vector<std::pair<Metric, Measurement>>> FileManager::readAllFromBuffer(const std::shared_ptr<IDevice>& device) const
 {
     std::vector<std::vector<std::pair<Metric, Measurement>>> measurements;
     tempDataForDevices.at(device)->close();
@@ -65,7 +65,7 @@ std::vector<std::vector<std::pair<Metric, Measurement>>> FileManager::readAllFro
 }
 
 void FileManager::save(
-    std::unordered_map<Device, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>>
+    std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>>
     data)
 {
     for (const auto& [device, ignored] : filePathsForDevices)
@@ -75,11 +75,11 @@ void FileManager::save(
         });
         if (outputDirectory.has_value())
         {
-            std::filesystem::path filePath = outputDirectory.value().append(std::format("{}.csv", device.getName()));
+            std::filesystem::path filePath = outputDirectory.value().append(std::format("{}.csv", device->getName()));
             output = std::make_shared<std::ofstream>(std::ofstream(std::ofstream(filePath)));
         }
 
-        std::vector<Metric> userMetrics = device.getUserMetrics();
+        std::vector<Metric> userMetrics = device->getUserMetrics();
         std::vector<Metric> counterMetrics = Counter::getAdditionalMetricsAdded();
 
         std::vector<Metric> headerMetrics;
@@ -169,7 +169,7 @@ std::vector<std::pair<Metric, Measurement>> FileManager::stringToLine(const std:
     return res;
 }
 
-std::vector<Metric> FileManager::readMetrics(const Device& device, const std::string& line)
+std::vector<Metric> FileManager::readMetrics(const std::shared_ptr<IDevice>& device, const std::string& line)
 {
     std::vector<Metric> res;
     std::stringstream ss(line);
@@ -177,7 +177,7 @@ std::vector<Metric> FileManager::readMetrics(const Device& device, const std::st
 
     while (std::getline(ss, currentLine, ';'))
     {
-        for (auto& allowedMetric : device.getUserMetrics())
+        for (auto& allowedMetric : device->getUserMetrics())
         {
             if (allowedMetric.name == currentLine)
             {

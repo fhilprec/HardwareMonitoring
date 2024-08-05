@@ -15,10 +15,10 @@
 
 class DependencyChecker {
     static void
-    allDevicesWantedExist(const std::unordered_map<Device, std::unordered_map<std::string, std::vector<Metric>>> &wantedMetricsByAllDevices) {
+    allDevicesWantedExist(const std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<std::string, std::vector<Metric>>> &wantedMetricsByAllDevices) {
         std::unordered_set<std::string> deviceNames(wantedMetricsByAllDevices.size());
         for (const auto &[device, wantedMetrics]: wantedMetricsByAllDevices){
-            deviceNames.insert(device.getName());
+            deviceNames.insert(device->getName());
         }
 
         std::string errorMessages;
@@ -26,7 +26,7 @@ class DependencyChecker {
         for (const auto &[device, wantedMetrics]: wantedMetricsByAllDevices){
             for (const auto &[wantedDeviceName, wantedMetricsForDevice]: wantedMetrics){
                 if(!deviceNames.contains(wantedDeviceName)){
-                    errorMessages.append(std::format("Metrics wanted from Device '%s' for Calculation of Metrics by Device '%s' but Device '%s' is not registered for Measurement.\n", wantedDeviceName, device.getName(), wantedDeviceName));
+                    errorMessages.append(std::format("Metrics wanted from Device '%s' for Calculation of Metrics by Device '%s' but Device '%s' is not registered for Measurement.\n", wantedDeviceName, device->getName(), wantedDeviceName));
                 }
             }
         }
@@ -36,38 +36,36 @@ class DependencyChecker {
         }
     }
     
-    static bool deviceHasWantedMetric(const Device& device, const Metric& metric) {
-        const std::vector<Metric> &allowedMetrics = device.getAllowedMetrics();
-        auto possibleMetric = std::find(allowedMetrics.begin(), allowedMetrics.end(), metric);
-        if(possibleMetric == std::end(allowedMetrics)){
-            return false;
-        }
-        
-        Metric foundMetric = *possibleMetric;
+    static bool deviceHasWantedMetric(std::shared_ptr<IDevice>& device, const Metric& metric) {
+        const std::unordered_map<std::string,Metric> &allowedMetrics = device->getAllMetricsByName();
+
+        if(allowedMetrics.contains(metric.name)) return false;
+
+        Metric foundMetric = allowedMetrics.at(metric.name);
         if(foundMetric.raw){
             return true;
         }
 
-        const std::vector<Metric> &chosenMetrics = device.getUserMetrics();
+        const std::vector<Metric> &chosenMetrics = device->getUserMetrics();
         return std::find(chosenMetrics.begin(), chosenMetrics.end(), foundMetric) != std::end(chosenMetrics);
 
     }
 public:
-    static void checkDependenciesBetweenDevicesForCalculatedMetrics(const std::vector<std::shared_ptr<Device>>& devices){
-        std::unordered_map<Device, std::unordered_map<std::string, std::vector<Metric>>> wantedMetricsByAllDevices = getAllWantedMetricsByDevices(devices);
+    static void checkDependenciesBetweenDevicesForCalculatedMetrics(const std::vector<std::shared_ptr<IDevice>>& devices){
+        std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<std::string, std::vector<Metric>>> wantedMetricsByAllDevices = getAllWantedMetricsByDevices(devices);
         allDevicesWantedExist(wantedMetricsByAllDevices);
 
-        std::unordered_map<std::string, Device> deviceByDeviceName(wantedMetricsByAllDevices.size());
-        for (const auto &[device, wantedMetrics]: wantedMetricsByAllDevices)deviceByDeviceName.emplace(device.getName(),device);
+        std::unordered_map<std::string, std::shared_ptr<IDevice>> deviceByDeviceName(wantedMetricsByAllDevices.size());
+        for (const auto &[device, wantedMetrics]: wantedMetricsByAllDevices)deviceByDeviceName.emplace(device->getName(),device);
 
         std::string errorMessages;
         
         for (const auto &[device, wantedMetrics]: wantedMetricsByAllDevices){
             for (const auto &[wantedDeviceName, wantedMetricsForDevice]: wantedMetrics){
-                Device wantedDevice = deviceByDeviceName.at(wantedDeviceName);
+                std::shared_ptr<IDevice> wantedDevice = deviceByDeviceName.at(wantedDeviceName);
                 for (const auto &wantedMetric: wantedMetricsForDevice){
                     if(!deviceHasWantedMetric(wantedDevice, wantedMetric)){
-                        errorMessages.append(std::format("Metric '%s' of Device '%s' wanted from Device '%s', but was not registered for Measurement", wantedMetric.name, wantedDevice.getName(), device.getName()));
+                        errorMessages.append(std::format("Metric '%s' of Device '%s' wanted from Device '%s', but was not registered for Measurement", wantedMetric.name, wantedDevice->getName(), device->getName()));
                     }
                 }
             }
@@ -78,15 +76,18 @@ public:
         }
     }
 
-    static std::unordered_map<Device, std::unordered_map<std::string, std::vector<Metric>>>
-    getAllWantedMetricsByDevices(const std::vector<std::shared_ptr<Device>> &devices) {
-        std::unordered_map<Device, std::unordered_map<std::string, std::vector<Metric>>> wantedMetricsByAllDevices;
+    static std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<std::string, std::vector<Metric>>>
+    getAllWantedMetricsByDevices(const std::vector<std::shared_ptr<IDevice>> &devices) {
+        std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<std::string, std::vector<Metric>>> wantedMetricsByAllDevices;
         for (const auto& device: devices){
             std::unordered_map<std::string, std::vector<Metric>> wantedMetricByDevice;
-            for (const auto &calculatableMetric: device->getCalculatableMetrics()){
-                for (const auto &[wantedDeviceName, wantedMetrics]: calculatableMetric.wantedMetricsByDeviceName){
-                    auto& metrics = wantedMetricsByAllDevices[*device][wantedDeviceName];
-                    metrics.insert(metrics.end(), wantedMetrics.begin(), wantedMetrics.end());
+            for (const auto &metric: device->getUserMetrics()){
+                if(metric.samplingMethod == CALCULATED) {
+                    // TODO get wanted Metrics
+                    /*for (const auto &[wantedDeviceName, wantedMetrics]: calculatableMetric.wantedMetricsByDeviceName) {
+                        auto &metrics = wantedMetricsByAllDevices[*device][wantedDeviceName];
+                        metrics.insert(metrics.end(), wantedMetrics.begin(), wantedMetrics.end());
+                    }*/
                 }
             }
         }

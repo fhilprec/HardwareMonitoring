@@ -17,8 +17,9 @@ int main() {
      cpu.printVector(cpu.getData());*/
 
 
-    std::vector<std::shared_ptr<Device>> devices;
-    devices.emplace_back(new CPUPerf());
+    std::vector<std::shared_ptr<IDevice>> devices;
+    auto* device = new CPUPerf();
+    devices.emplace_back((IDevice*)device);
     std::filesystem::path outputDirectory("testOutput");
     auto fullPath = absolute(outputDirectory);
     std::chrono::milliseconds pollingTime = std::chrono::milliseconds(100);
