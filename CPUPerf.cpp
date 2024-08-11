@@ -18,12 +18,14 @@ static const std::vector METRICS{
     Metric(TWO_SHOT, "raw_L1-misses", true),
     Metric(TWO_SHOT, "raw_LLC-misses", true),
     Metric(TWO_SHOT, "raw_branch-misses", true),
+    Metric(TWO_SHOT, "raw_task-clock", true),
     Metric(CALCULATED, "cycles", false),
     Metric(CALCULATED, "kcycles", false),
     Metric(CALCULATED, "instructions", false),
     Metric(CALCULATED, "L1-misses", false),
     Metric(CALCULATED, "LLC-misses", false),
-    Metric(CALCULATED, "branch-misses", false)
+    Metric(CALCULATED, "branch-misses", false),
+    Metric(CALCULATED, "task-clock", false)
 };
 
 CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device(metricsToCount)
