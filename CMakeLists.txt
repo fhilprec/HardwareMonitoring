@@ -29,8 +29,8 @@ add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
         Output.cpp
         OutputConfiguration.cpp
         OutputConfiguration.hpp
-        Sampler.cpp
-        Sampler.h
+        SamplingMethod.cpp
+        SamplingMethod.h
         Metric.cpp
         Metric.h
         Measurement.cpp
@@ -39,8 +39,6 @@ add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
         CPUPerf.h
         Calculator.cpp
         Calculator.h
-        CalculateMetric.cpp
-        CalculateMetric.h
         Monitor.cpp
         Monitor.h
         FileManager.cpp

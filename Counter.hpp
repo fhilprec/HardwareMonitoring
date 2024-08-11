@@ -55,6 +55,6 @@ public:
 
 private:
     void poll(const std::stop_token& stop_token);
-    void fetchData(Sampler sampleMethod);
+    void fetchData(SamplingMethod sampleMethod);
     void checkPollingTime(const std::shared_ptr<IDevice>& device, const std::chrono::milliseconds& timeForPull);
 };

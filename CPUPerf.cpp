@@ -26,9 +26,9 @@ static const std::vector METRICS{
     Metric(CALCULATED, "branch-misses", false)
 };
 
-CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device<CPUPerf>(metricsToCount)
+CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device(metricsToCount)
 {
-    for (auto& metric: Device<CPUPerf>::getUserMetrics()) {
+    for (auto& metric: Device::getUserMetrics()) {
         if(metric.name == "raw_cycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
         if(metric.name == "raw_kcycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
         if(metric.name == "raw_instructions") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS);
@@ -71,10 +71,10 @@ void CPUPerf::registerCounter(uint64_t type, uint64_t eventID)
     pe.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
 }
 
-std::vector<std::pair<Metric, Measurement>> CPUPerf::getData(const Sampler sampler)
+std::vector<std::pair<Metric, Measurement>> CPUPerf::getData(const SamplingMethod sampler)
 {
 
-    auto result  = Device<CPUPerf>::getData(sampler);
+    auto result  = Device::getData(sampler);
     if constexpr (TWO_SHOT) first = false;
     return  result;
 }
@@ -82,7 +82,7 @@ std::vector<std::pair<Metric, Measurement>> CPUPerf::getData(const Sampler sampl
 Measurement CPUPerf::fetchMetric(const Metric& metric)
 {
     std::vector<std::pair<Metric, Measurement>> result;
-    const int index = std::distance(userGivenTwoShotMetrics.begin(),
+    const size_t index = std::distance(userGivenTwoShotMetrics.begin(),
                                     std::ranges::find(userGivenTwoShotMetrics, metric));
     auto& event = events[index];
     if(first)
@@ -99,20 +99,30 @@ Measurement CPUPerf::fetchMetric(const Metric& metric)
     return Measurement(valueString);
 }
 
-
-
-Measurement CPUPerf::calculateMetric(
-    const std::unordered_map<std::string, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>>& data, const Metric& rawMetric)
+Measurement CPUPerf::calculateMetric(const Metric& metric,
+    const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::
+    pair<Metric, Measurement>>>>>& requestedMetricsByDeviceBySamplingMethod)
 {
+    Metric rawMetric;
+    for (const auto & user_metric : getUserMetrics())
+    {
+        if(user_metric.raw && user_metric.name.find(metric.name) != std::string::npos)
+        {
+            rawMetric = user_metric;
+        }
+    }
+
     uint64_t valuePrev, timeEnabledPrev, timeRunningPrev;
-    parseData(data.at("CPUPerf").at(TWO_SHOT).at(0), rawMetric, valuePrev, timeEnabledPrev, timeRunningPrev);
+    parseData(requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(TWO_SHOT).at(0), rawMetric, valuePrev, timeEnabledPrev, timeRunningPrev);
 
     uint64_t valueAfter, timeEnabledAfter, timeRunningAfter;
-    parseData(data.at("CPUPerf").at(TWO_SHOT).at(1), rawMetric, valueAfter, timeEnabledAfter, timeRunningAfter);
+    parseData(requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(TWO_SHOT).at(1), rawMetric, valueAfter, timeEnabledAfter, timeRunningAfter);
 
     const double multiplexingCorrection = static_cast<double>(timeEnabledAfter- timeEnabledPrev) / (static_cast<double>(timeRunningAfter - timeRunningPrev)+0.01);
     return Measurement(std::format("{}",static_cast<double>(valueAfter - valuePrev) * multiplexingCorrection));
+
 }
+
 
 void CPUPerf::parseData(const std::vector<std::pair<Metric, Measurement>>& row, const Metric& rawMetric, uint64_t &value,
     uint64_t &time_enabled, uint64_t &time_running)
@@ -146,6 +156,13 @@ std::unordered_map<std::string, Metric> CPUPerf::getAllDeviceMetricsByName() {
         result.emplace(metric.name, metric);
     }
     return result;
+}
+
+std::unordered_map<std::string, std::vector<Metric>> CPUPerf::getNeededMetricsForCalculatedMetrics(const Metric& metric)
+{
+    // Could also be done with switch case on metric name
+    const size_t metricIndex = std::distance(METRICS.begin(),std::ranges::find(METRICS, metric));
+    return {{getDeviceName(),{METRICS[metricIndex-METRICS.size()/2]}}};
 }
 
 CPUPerf::~CPUPerf() {

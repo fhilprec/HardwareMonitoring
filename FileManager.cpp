@@ -65,7 +65,7 @@ std::vector<std::vector<std::pair<Metric, Measurement>>> FileManager::readAllFro
 }
 
 void FileManager::save(
-    std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>>
+    std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>>
     data)
 {
     for (const auto& [device, ignored] : filePathsForDevices)

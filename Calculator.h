@@ -16,19 +16,19 @@ public:
     {
     }
 
-    std::unordered_map<std::string, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>> getRawMeasurementsOfDevices(FileManager& fileManager)
+    std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>> getRawMeasurementsOfDevices(FileManager& fileManager)
     {
-        std::unordered_map<std::string, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>>  res;
+        std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>>  res;
         for (const auto & device : devicesWithCalculations)
         {
-            res.emplace(device->getName(),std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>());
+            res.emplace(device->getName(),std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>());
 
             std::vector<std::vector<std::pair<Metric, Measurement>>> rawResults = fileManager.readAllFromBuffer(device);
             if(rawResults.empty()) continue;
 
             for (const auto & line : rawResults)
             {
-                Sampler sampler = line.at(0).first.samplingMethod; // could also be fetched from SampleMethod column
+                SamplingMethod sampler = line.at(0).first.samplingMethod; // could also be fetched from SampleMethod column
                 res[device->getName()][sampler].push_back(line);
             }
         }
@@ -37,15 +37,16 @@ public:
 
     void calculateAndWrite(FileManager fileManager)
     {
-        std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>> res;
-        std::unordered_map<std::string, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>> rawMeasurementsByDeviceBySamplingMethod = getRawMeasurementsOfDevices(fileManager);
+        std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>> res;
+        std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>> rawMeasurementsByDeviceBySamplingMethod = getRawMeasurementsOfDevices(fileManager);
         for (const auto & device : devicesWithCalculations)
         {
             std::vector<std::pair<Metric, Measurement>> calculatedMetrics;
             for (const auto & metric : device->getUserMetrics())
             {
                 if(metric.samplingMethod == CALCULATED) {
-                    // TODO Calculate Metric
+                    auto result = device->calculateMetric(metric, rawMeasurementsByDeviceBySamplingMethod);
+                    calculatedMetrics.emplace_back(metric,result);
                 }
             }
             calculatedMetrics.emplace_back(TIME_METRIC, std::format("{:%Y/%m/%d %T}", std::chrono::system_clock::now()));

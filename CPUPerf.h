@@ -32,17 +32,15 @@ public:
     explicit CPUPerf(const std::vector<Metric>& metricsToCount);
     ~CPUPerf() override;
 
-    std::vector<std::pair<Metric, Measurement>> getData(Sampler sampler) override ;
+    std::vector<std::pair<Metric, Measurement>> getData(SamplingMethod sampler) override ;
     Measurement fetchMetric(const Metric &metric) override ;
+    Measurement calculateMetric(const Metric& metric, const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>>& requestedMetricsByDeviceBySamplingMethod) override;
 
     static std::string getDeviceName();
     static std::unordered_map<std::string,Metric> getAllDeviceMetricsByName();
+    static std::unordered_map<std::string, std::vector<Metric>> getNeededMetricsForCalculatedMetrics(const Metric& metric);
 
     void registerCounter(uint64_t type, uint64_t eventID);
-    static Measurement calculateMetric(
-        const std::unordered_map<std::string, std::unordered_map<
-                                     Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>>& data,
-        const Metric& rawMetric);
     static void parseData(const std::vector<std::pair<Metric, Measurement>>& row, const Metric& rawMetric, uint64_t& value, uint64_t&
                           time_enabled, uint64_t& time_running);
 };

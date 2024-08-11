@@ -2,7 +2,7 @@
 #define SAMPLER_H
 #include <string>
 
-enum Sampler {
+enum SamplingMethod {
     /* Reads at the end of the process */
     ONE_SHOT = 0,
     /* Reads both at the start and the end of the process and returns the difference */

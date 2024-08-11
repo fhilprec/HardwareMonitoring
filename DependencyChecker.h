@@ -83,11 +83,18 @@ public:
             std::unordered_map<std::string, std::vector<Metric>> wantedMetricByDevice;
             for (const auto &metric: device->getUserMetrics()){
                 if(metric.samplingMethod == CALCULATED) {
-                    // TODO get wanted Metrics
-                    /*for (const auto &[wantedDeviceName, wantedMetrics]: calculatableMetric.wantedMetricsByDeviceName) {
-                        auto &metrics = wantedMetricsByAllDevices[*device][wantedDeviceName];
-                        metrics.insert(metrics.end(), wantedMetrics.begin(), wantedMetrics.end());
-                    }*/
+                    auto neededMetrics = device->getNeededMetricsOfOtherDevicesForCalculatedMetric(metric);
+                    for (const auto & [deviceName, neededMetrics] : neededMetrics)
+                    {
+                        std::vector<Metric> currentWantedMetrics = wantedMetricsByAllDevices[device][deviceName];
+                        for (const auto & neededMetric : neededMetrics)
+                        {
+                            if(std::ranges::find(currentWantedMetrics,neededMetric) != std::end(currentWantedMetrics))
+                            {
+                                currentWantedMetrics.push_back(neededMetric);
+                            }
+                        }
+                    }
                 }
             }
         }

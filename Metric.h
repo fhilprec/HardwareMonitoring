@@ -3,15 +3,15 @@
 #include <format>
 #include <string>
 
-#include "Sampler.h"
+#include "SamplingMethod.h"
 
 struct Metric {
-    Sampler samplingMethod;
+    SamplingMethod samplingMethod;
     std::string name;
     bool raw;
 
     Metric() = default;
-    Metric(const Sampler samplingMethod, std::string name, const bool raw = false) : samplingMethod(samplingMethod), name(std::move(name)), raw(raw){}
+    Metric(const SamplingMethod samplingMethod, std::string name, const bool raw = false) : samplingMethod(samplingMethod), name(std::move(name)), raw(raw){}
 
     bool operator==(const Metric &rhs) const {
         return samplingMethod == rhs.samplingMethod &&

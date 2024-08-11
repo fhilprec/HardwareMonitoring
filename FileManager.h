@@ -22,7 +22,7 @@ public:
     FileManager(const std::vector<std::shared_ptr<IDevice>>& devices, const std::optional<std::filesystem::path>& outputDirectory);
     void writeToBuffer(const std::shared_ptr<IDevice>& device, const std::vector<std::pair<Metric, Measurement>>& line);
     std::vector<std::vector<std::pair<Metric, Measurement>>> readAllFromBuffer(const std::shared_ptr<IDevice>& device) const;
-    void save(std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<Sampler, std::vector<std::vector<std::pair<Metric, Measurement>>>>> data);
+    void save(std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>> data);
     static std::string createHeaderString(const std::vector<Metric>& metrics);
 
 private:
