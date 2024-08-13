@@ -19,7 +19,7 @@
 struct CounterConfig
 {
     const std::vector<std::shared_ptr<IDevice>> &devices;
-    const std::chrono::milliseconds &pollingTimeFrame;
+    const std::chrono::milliseconds pollingTimeFrame;
 };
 
 static const Metric SAMPLING_METHOD_METRIC = {CALCULATED, "The Sampling Method used"};
