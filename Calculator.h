@@ -46,11 +46,20 @@ public:
         {
             std::vector<std::pair<Metric, Measurement>> calculatedMetrics;
             auto result = device->calculateMetric(metric, allMetrics);
-            calculatedMetrics.emplace_back(metric,result);
-            calculatedMetrics.emplace_back(TIME_METRIC, fmt::format("{}", std::chrono::system_clock::now()));
-            calculatedMetrics.emplace_back(SAMPLING_METHOD_METRIC, getDisplayForSampler(CALCULATED));
-            allMetrics.at(device->getName())[CALCULATED].push_back(calculatedMetrics);
-            res[device][CALCULATED].push_back(calculatedMetrics);
+            auto &calculatedMetricsForDevice = allMetrics.at(device->getName())[CALCULATED];
+            if(calculatedMetricsForDevice.empty())calculatedMetricsForDevice.emplace_back();
+            calculatedMetricsForDevice[0].emplace_back(metric,result);
+        }
+
+        for (const auto & device : devicesWithCalculations)
+        {
+            auto& calculatedMetricsForDevice = allMetrics.at(device->getName())[CALCULATED];
+            if(!calculatedMetricsForDevice.empty())
+            {
+                calculatedMetricsForDevice[0].emplace_back(TIME_METRIC, fmt::format("{}", std::chrono::system_clock::now()));
+                calculatedMetricsForDevice[0].emplace_back(SAMPLING_METHOD_METRIC, getDisplayForSampler(CALCULATED));
+
+            }
         }
 
         for (const auto & device : devicesWithCalculations)
