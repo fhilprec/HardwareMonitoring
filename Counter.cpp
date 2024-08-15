@@ -1,5 +1,8 @@
 #include "Counter.hpp"
 
+#include "fmt/format.h"
+#include "fmt/chrono.h"
+
 Counter::Counter(const CounterConfig counterConfig, FileManager& fileManager):
     counterConfig(counterConfig),
     fileManager(fileManager),
@@ -69,8 +72,8 @@ void Counter::fetchData(SamplingMethod sampleMethod)
 
         if (!deviceData.empty())
         {
-            deviceData.emplace_back(TIME_TAKEN_POLLING_METRIC, std::format("{} ms", timeForPull.count()));
-            deviceData.emplace_back(TIME_METRIC, std::format("{:%Y/%m/%d %T}", startPoll));
+            deviceData.emplace_back(TIME_TAKEN_POLLING_METRIC, fmt::format("{} ms", timeForPull.count()));
+            deviceData.emplace_back(TIME_METRIC, fmt::format("{}", startPoll));
             deviceData.emplace_back(SAMPLING_METHOD_METRIC, getDisplayForSampler(sampleMethod));
             fileManager.writeToBuffer(device, deviceData);
         }

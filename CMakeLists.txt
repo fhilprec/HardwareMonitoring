@@ -17,7 +17,13 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
 # Find packages go here.
-
+include(cmake/CPM.cmake)
+CPMAddPackage(
+        NAME fmt
+        GIT_TAG 11.0.2
+        GITHUB_REPOSITORY fmtlib/fmt # to get an installable target
+        OPTIONS "FMT_INSTALL YES"
+)
 # You should usually split this into folders, but this is a simple example
 
 # This is a "default" library, and will match the *** variable setting.
@@ -46,13 +52,16 @@ add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
         DependencyChecker.cpp
         DependencyChecker.h
         IOFile.cpp
+        Graph.cpp
+        Graph.h
 )
 
 # Link each target with other targets or add options, etc.
+target_link_libraries(HardwareMonitoring fmt::fmt)
+
 
 # Adding something we can run - Output name matches target name
-add_executable(TestHardwareMonitoring test.cpp
-        IOFile.cpp)
+add_executable(TestHardwareMonitoring test.cpp)
 
 # Make sure you link your targets with this command. It can also link libraries and
 # even flags, so linking a target that does not exist will not give a configure-time error.
