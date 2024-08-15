@@ -3,8 +3,10 @@
 #include <unordered_map>
 
 #include "Counter.hpp"
+#include "DependencyChecker.h"
 #include "Device.hpp"
 #include "FileManager.h"
+#include "fmt/chrono.h"
 
 
 class Calculator {
@@ -38,25 +40,22 @@ public:
     void calculateAndWrite(FileManager fileManager)
     {
         std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>> res;
-        std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>> rawMeasurementsByDeviceBySamplingMethod = getRawMeasurementsOfDevices(fileManager);
-        for (const auto & device : devicesWithCalculations)
+        std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>> allMetrics = getRawMeasurementsOfDevices(fileManager);
+        std::vector<std::pair<std::shared_ptr<IDevice>, Metric>> calculatedMetricsOrdered = DependencyChecker::getSortedCalculatedMetrics(devicesWithCalculations);
+        for (const auto & [device,metric] : calculatedMetricsOrdered)
         {
             std::vector<std::pair<Metric, Measurement>> calculatedMetrics;
-            for (const auto & metric : device->getUserMetrics())
-            {
-                if(metric.samplingMethod == CALCULATED) {
-                    auto result = device->calculateMetric(metric, rawMeasurementsByDeviceBySamplingMethod);
-                    calculatedMetrics.emplace_back(metric,result);
-                }
-            }
-            calculatedMetrics.emplace_back(TIME_METRIC, std::format("{:%Y/%m/%d %T}", std::chrono::system_clock::now()));
+            auto result = device->calculateMetric(metric, allMetrics);
+            calculatedMetrics.emplace_back(metric,result);
+            calculatedMetrics.emplace_back(TIME_METRIC, fmt::format("{}", std::chrono::system_clock::now()));
             calculatedMetrics.emplace_back(SAMPLING_METHOD_METRIC, getDisplayForSampler(CALCULATED));
+            allMetrics.at(device->getName())[CALCULATED].push_back(calculatedMetrics);
             res[device][CALCULATED].push_back(calculatedMetrics);
         }
 
         for (const auto & device : devicesWithCalculations)
         {
-            res[device].insert(rawMeasurementsByDeviceBySamplingMethod[device->getName()].begin(), rawMeasurementsByDeviceBySamplingMethod[device->getName()].end());
+            res[device].insert(allMetrics[device->getName()].begin(), allMetrics[device->getName()].end());
         }
 
         fileManager.save(res);

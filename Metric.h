@@ -1,6 +1,5 @@
 #ifndef METRIC_H
 #define METRIC_H
-#include <format>
 #include <string>
 
 #include "SamplingMethod.h"

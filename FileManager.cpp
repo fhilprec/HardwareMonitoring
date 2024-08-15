@@ -1,13 +1,14 @@
 #include "FileManager.h"
 
 #include "Counter.hpp"
+#include "fmt/format.h"
 
 FileManager::FileManager(const std::vector<std::shared_ptr<IDevice>>& devices,
                          const std::optional<std::filesystem::path>& outputDirectory) : outputDirectory(outputDirectory)
 {
     if (outputDirectory.has_value() && !is_directory(outputDirectory.value()))
     {
-        throw std::invalid_argument(std::format("Path '{}' is not a directory",
+        throw std::invalid_argument(fmt::format("Path '{}' is not a directory",
                                                 outputDirectory.value().string()));
     }
 
@@ -15,7 +16,7 @@ FileManager::FileManager(const std::vector<std::shared_ptr<IDevice>>& devices,
     if (!is_directory(tempPath)) create_directory(tempPath);
     for (const auto& device : devices)
     {
-        filePathsForDevices.emplace(device, tempPath.append(std::format("{}_raw.csv", device->getName())));
+        filePathsForDevices.emplace(device, tempPath.append(fmt::format("{}_raw.csv", device->getName())));
     }
     for (const auto& [device, deviceFilePath] : filePathsForDevices)
     {
@@ -75,7 +76,7 @@ void FileManager::save(
         });
         if (outputDirectory.has_value())
         {
-            std::filesystem::path filePath = outputDirectory.value().append(std::format("{}.csv", device->getName()));
+            std::filesystem::path filePath = outputDirectory.value().append(fmt::format("{}.csv", device->getName()));
             output = std::make_shared<std::ofstream>(std::ofstream(std::ofstream(filePath)));
         }
 

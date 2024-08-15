@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <iostream>
 #include <fstream>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 

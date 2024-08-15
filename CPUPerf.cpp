@@ -11,6 +11,8 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#include "fmt/format.h"
+
 static const std::vector METRICS{
     Metric(TWO_SHOT, "raw_cycles", true),
     Metric(TWO_SHOT, "raw_kcycles", true),
@@ -25,7 +27,7 @@ static const std::vector METRICS{
     Metric(CALCULATED, "L1-misses", false),
     Metric(CALCULATED, "LLC-misses", false),
     Metric(CALCULATED, "branch-misses", false),
-    Metric(CALCULATED, "task-clock", false)
+    Metric(CALCULATED, "task-clock", false),
 };
 
 CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device(metricsToCount)
@@ -85,7 +87,7 @@ Measurement CPUPerf::fetchMetric(const Metric& metric)
 {
     std::vector<std::pair<Metric, Measurement>> result;
     const size_t index = std::distance(userGivenTwoShotMetrics.begin(),
-                                    std::ranges::find(userGivenTwoShotMetrics, metric));
+                                    std::find(userGivenTwoShotMetrics.begin(), userGivenTwoShotMetrics.end(), metric));
     auto& event = events[index];
     if(first)
     {
@@ -97,7 +99,7 @@ Measurement CPUPerf::fetchMetric(const Metric& metric)
     {
         ioctl(event.fd, PERF_EVENT_IOC_DISABLE, 0);
     }
-    const std::string valueString = std::format("{}|{}|{}",event.data.value,event.data.time_enabled,event.data.time_running);
+    const std::string valueString = fmt::format("{}|{}|{}",event.data.value,event.data.time_enabled,event.data.time_running);
     return Measurement(valueString);
 }
 
@@ -114,6 +116,11 @@ Measurement CPUPerf::calculateMetric(const Metric& metric,
         }
     }
 
+    if(metric.name == "cyclic")
+    {
+        std::cout << " lol";
+    }
+
     uint64_t valuePrev, timeEnabledPrev, timeRunningPrev;
     parseData(requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(TWO_SHOT).at(0), rawMetric, valuePrev, timeEnabledPrev, timeRunningPrev);
 
@@ -121,7 +128,7 @@ Measurement CPUPerf::calculateMetric(const Metric& metric,
     parseData(requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(TWO_SHOT).at(1), rawMetric, valueAfter, timeEnabledAfter, timeRunningAfter);
 
     const double multiplexingCorrection = static_cast<double>(timeEnabledAfter- timeEnabledPrev) / (static_cast<double>(timeRunningAfter - timeRunningPrev)+0.01);
-    return Measurement(std::format("{}",static_cast<double>(valueAfter - valuePrev) * multiplexingCorrection));
+    return Measurement(fmt::format("{}",static_cast<double>(valueAfter - valuePrev) * multiplexingCorrection));
 
 }
 
@@ -163,7 +170,7 @@ std::unordered_map<std::string, Metric> CPUPerf::getAllDeviceMetricsByName() {
 std::unordered_map<std::string, std::vector<Metric>> CPUPerf::getNeededMetricsForCalculatedMetrics(const Metric& metric)
 {
     // Could also be done with switch case on metric name
-    const size_t metricIndex = std::distance(METRICS.begin(),std::ranges::find(METRICS, metric));
+    const size_t metricIndex = std::distance(METRICS.begin(),std::find(METRICS.begin(), METRICS.end(), metric));
     return {{getDeviceName(),{METRICS[metricIndex-METRICS.size()/2]}}};
 }
 

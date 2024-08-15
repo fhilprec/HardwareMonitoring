@@ -8,6 +8,7 @@
 #include "Counter.hpp"
 #include "FileManager.h"
 #include "DependencyChecker.h"
+#include <fmt/core.h>
 
 
 class Monitor {
