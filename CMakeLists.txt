@@ -45,12 +45,14 @@ add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
         FileManager.h
         DependencyChecker.cpp
         DependencyChecker.h
+        IOFile.cpp
 )
 
 # Link each target with other targets or add options, etc.
 
 # Adding something we can run - Output name matches target name
-add_executable(TestHardwareMonitoring test.cpp)
+add_executable(TestHardwareMonitoring test.cpp
+        IOFile.cpp)
 
 # Make sure you link your targets with this command. It can also link libraries and
 # even flags, so linking a target that does not exist will not give a configure-time error.
