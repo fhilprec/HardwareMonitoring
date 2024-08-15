@@ -16,6 +16,7 @@ FileManager::FileManager(const std::vector<std::shared_ptr<IDevice>>& devices,
     if (!is_directory(tempPath)) create_directory(tempPath);
     for (const auto& device : devices)
     {
+        tempPath = std::filesystem::temp_directory_path().append("HardwareMonitoring");
         filePathsForDevices.emplace(device, tempPath.append(fmt::format("{}_raw.csv", device->getName())));
     }
     for (const auto& [device, deviceFilePath] : filePathsForDevices)
@@ -76,7 +77,8 @@ void FileManager::save(
         });
         if (outputDirectory.has_value())
         {
-            std::filesystem::path filePath = outputDirectory.value().append(fmt::format("{}.csv", device->getName()));
+            auto outputDirectoy = outputDirectory.value();
+            std::filesystem::path filePath = outputDirectoy.append(fmt::format("{}.csv", device->getName()));
             output = std::make_shared<std::ofstream>(std::ofstream(std::ofstream(filePath)));
         }
 

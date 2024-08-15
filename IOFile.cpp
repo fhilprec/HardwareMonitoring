@@ -109,6 +109,6 @@ std::unordered_map<std::string, Metric> IOFile::getAllDeviceMetricsByName() {
 }
 
 std::unordered_map<std::string, std::vector<Metric>> IOFile::getNeededMetricsForCalculatedMetrics(const Metric& metric) {
-    const size_t metricIndex = std::distance(METRICS.begin(), std::ranges::find(METRICS, metric));
+    const size_t metricIndex = std::distance(METRICS.begin(), std::find(METRICS.begin(),METRICS.end(), metric));
     return {{getDeviceName(), {METRICS[metricIndex - METRICS.size() / 2]}}};
 }
