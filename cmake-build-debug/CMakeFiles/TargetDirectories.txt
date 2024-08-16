@@ -1,4 +1,0 @@
-/home/florian/Projects/HardwareMonitoring/cmake-build-debug/CMakeFiles/HardwareMonitoring.dir
-/home/florian/Projects/HardwareMonitoring/cmake-build-debug/CMakeFiles/TestHardwareMonitoring.dir
-/home/florian/Projects/HardwareMonitoring/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/florian/Projects/HardwareMonitoring/cmake-build-debug/CMakeFiles/rebuild_cache.dir
