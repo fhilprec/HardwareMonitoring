@@ -2,6 +2,9 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include "fmt/format.h"
+#include "CPUPerf.h"
+
 
 static const std::vector<Metric> METRICS{
     Metric(TWO_SHOT, "raw_rchar", true),
@@ -17,7 +20,8 @@ static const std::vector<Metric> METRICS{
     Metric(CALCULATED, "syscw", false),
     Metric(CALCULATED, "read_bytes", false),
     Metric(CALCULATED, "write_bytes", false),
-    Metric(CALCULATED, "cancelled_write_bytes", false)
+    Metric(CALCULATED, "cancelled_write_bytes", false),
+    Metric(CALCULATED, "rchar and cycles", false)
 };
 
 IOFile::IOFile() : Device(METRICS) {}
@@ -70,6 +74,29 @@ Measurement IOFile::calculateMetric(const Metric& metric, const std::unordered_m
     uint64_t prevValue = 0, currentValue = 0;
 
     auto deviceData = requestedMetricsByDeviceBySamplingMethod.find(getDeviceName());
+
+    if(metric.name == "rchar and cycles") {
+        auto calcmetricvectorIOFile = requestedMetricsByDeviceBySamplingMethod.at(IOFile::getDeviceName()).at(CALCULATED)[0];
+        auto calcmetricvectorPerf = requestedMetricsByDeviceBySamplingMethod.at(CPUPerf::getDeviceName()).at(CALCULATED)[0];
+        int rchar = 0;
+        double cycles = 0.0;
+
+        for (const auto& pair : calcmetricvectorIOFile) {
+            if (pair.first.name == "rchar") {
+                rchar = std::stoi(pair.second.value);
+            }
+        }
+        for (const auto& pair : calcmetricvectorPerf) {
+
+            if (pair.first.name == "cycles") {
+                cycles = std::stod(pair.second.value);
+            }
+        }
+
+        return Measurement(fmt::format("{}",cycles/rchar));
+    }
+
+
     if (deviceData == requestedMetricsByDeviceBySamplingMethod.end()) {
         return Measurement("0");
     }
@@ -110,5 +137,9 @@ std::unordered_map<std::string, Metric> IOFile::getAllDeviceMetricsByName() {
 
 std::unordered_map<std::string, std::vector<Metric>> IOFile::getNeededMetricsForCalculatedMetrics(const Metric& metric) {
     const size_t metricIndex = std::distance(METRICS.begin(), std::find(METRICS.begin(),METRICS.end(), metric));
+    if (metric.name == "rchar and cycles") {
+        return {{getDeviceName(), {getAllDeviceMetricsByName()["rchar"]}},
+            {CPUPerf::getDeviceName(), {CPUPerf::getAllDeviceMetricsByName()["cycles"]}}};
+    }
     return {{getDeviceName(), {METRICS[metricIndex - METRICS.size() / 2]}}};
 }

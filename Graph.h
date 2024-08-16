@@ -7,7 +7,7 @@
 #include <unordered_set>
 #include <vector>
 #include <stdexcept>
-
+#include <algorithm>
 
 template <typename T>
 class Graph {
