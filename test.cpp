@@ -9,6 +9,11 @@
 #include "IOFile.h"
 #include "Monitor.h"
 
+
+//cmake .; ninja; ./TestHardwareMonitoring 
+
+
+
 // Function to perform some CPU-intensive work
 void doCPUWork() {
     volatile int sum = 0;
