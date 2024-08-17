@@ -104,7 +104,5 @@ int main() {
     // Clean up the test file
     std::filesystem::remove(filename);
 
-    std::cout << "Test completed. Check the testOutput directory for results." << std::endl;
-
     return 0;
 }

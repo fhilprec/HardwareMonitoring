@@ -8,6 +8,22 @@
 *.obj
 
 
+
+.ninja_deps
+.ninja_log
+CMakeCache.txt
+CMakeFiles/
+CMakePresets.json
+CPM_modules/
+TestHardwareMonitoring
+_deps/
+build.ninja
+cmake/CPM_0.40.2.cmake
+cmake_install.cmake
+cpm-package-lock.cmake
+testOutput/
+
+
 # Precompiled Headers
 *.gch
 *.pch
