@@ -22,9 +22,9 @@ struct CounterConfig
     const std::chrono::milliseconds pollingTimeFrame;
 };
 
-static const Metric SAMPLING_METHOD_METRIC = {CALCULATED, "The Sampling Method used"};
-static const Metric TIME_METRIC = {POLLING, "Time of Polling"};
-static const Metric TIME_TAKEN_POLLING_METRIC = {POLLING, "Time Taken for Polling"};
+static const Metric SAMPLING_METHOD_METRIC = {CALCULATED, "The Sampling Method used", true};
+static const Metric TIME_METRIC = {CALCULATED, "Time of Polling", true};
+static const Metric TIME_TAKEN_POLLING_METRIC = {CALCULATED, "Time Taken for Polling", true};
 
 class Counter
 {
@@ -41,10 +41,6 @@ private:
     std::vector<std::shared_ptr<IDevice>> slowPollingDevices;
 
 public:
-    Counter(const std::vector<std::shared_ptr<IDevice>>& devices, FileManager& fileManager) : Counter({
-        devices,
-        std::chrono::milliseconds(500)
-    }, fileManager) {}
     Counter(CounterConfig counterConfig, FileManager& fileManager);
 
     void start();

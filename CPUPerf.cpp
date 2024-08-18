@@ -49,9 +49,8 @@ CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device(metricsToCou
         event.fd = static_cast<int>(syscall(__NR_perf_event_open, &event.pe, 0, -1, -1, 0));
         if (event.fd < 0)
         {
-            std::cerr << "Error opening counters" << std::endl;
             events.resize(0);
-            return;
+            throw std::runtime_error(fmt::format("Error opening counters for {} Device, you may need to set kernel.perf_event_paranoid=-1",getDeviceName()));
         }
     }
 }
@@ -79,7 +78,7 @@ std::vector<std::pair<Metric, Measurement>> CPUPerf::getData(const SamplingMetho
 {
 
     auto result  = Device::getData(sampler);
-    if constexpr (TWO_SHOT) first = false;
+    if (sampler == TWO_SHOT) first = false;
     return  result;
 }
 
@@ -104,8 +103,7 @@ Measurement CPUPerf::fetchMetric(const Metric& metric)
 }
 
 Measurement CPUPerf::calculateMetric(const Metric& metric,
-    const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::
-    pair<Metric, Measurement>>>>>& requestedMetricsByDeviceBySamplingMethod)
+                                     const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>> &requestedMetricsByDeviceBySamplingMethod)
 {
     Metric rawMetric;
     for (const auto & user_metric : getUserMetrics())
@@ -114,11 +112,6 @@ Measurement CPUPerf::calculateMetric(const Metric& metric,
         {
             rawMetric = user_metric;
         }
-    }
-
-    if(metric.name == "cyclic")
-    {
-        std::cout << " lol";
     }
 
     uint64_t valuePrev, timeEnabledPrev, timeRunningPrev;
@@ -133,18 +126,10 @@ Measurement CPUPerf::calculateMetric(const Metric& metric,
 }
 
 
-void CPUPerf::parseData(const std::vector<std::pair<Metric, Measurement>>& row, const Metric& rawMetric, uint64_t &value,
+void CPUPerf::parseData(const std::unordered_map<Metric, Measurement>& row, const Metric& rawMetric, uint64_t &value,
     uint64_t &time_enabled, uint64_t &time_running)
 {
-    Measurement rawMeasurement;
-    for (const auto &   [metric, measurement] : row)
-    {
-        if(metric == rawMetric)
-        {
-            rawMeasurement = measurement;
-            continue;
-        }
-    }
+    const Measurement& rawMeasurement = row.at(rawMetric);
     std::stringstream ss(rawMeasurement.value);
     std::string currentLine;
 

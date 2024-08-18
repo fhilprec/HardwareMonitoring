@@ -18,19 +18,24 @@ public:
     {
     }
 
-    std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>> getRawMeasurementsOfDevices(FileManager& fileManager)
+    std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>> getRawMeasurementsOfDevices(FileManager& fileManager)
     {
-        std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>>  res;
+        std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>> res;
         for (const auto & device : devicesWithCalculations)
         {
-            res.emplace(device->getName(),std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>());
+            res.emplace(device->getName(),std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>());
 
-            std::vector<std::vector<std::pair<Metric, Measurement>>> rawResults = fileManager.readAllFromBuffer(device);
+            std::vector<std::unordered_map<Metric, Measurement>>  rawResults = fileManager.readAllFromBuffer(device);
             if(rawResults.empty()) continue;
 
             for (const auto & line : rawResults)
             {
-                SamplingMethod sampler = line.at(0).first.samplingMethod; // could also be fetched from SampleMethod column
+                SamplingMethod sampler;
+                for (const auto &[metric, measurement]: line){
+                    if(metric == SAMPLING_METHOD_METRIC){
+                        sampler = getSamplerFromDisplayName(measurement.value);
+                    }
+                }
                 res[device->getName()][sampler].push_back(line);
             }
         }
@@ -39,8 +44,8 @@ public:
 
     void calculateAndWrite(FileManager fileManager)
     {
-        std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>> res;
-        std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>> allMetrics = getRawMeasurementsOfDevices(fileManager);
+        std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>> res;
+        std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>> allMetrics = getRawMeasurementsOfDevices(fileManager);
         std::vector<std::pair<std::shared_ptr<IDevice>, Metric>> calculatedMetricsOrdered = DependencyChecker::getSortedCalculatedMetrics(devicesWithCalculations);
         for (const auto & [device,metric] : calculatedMetricsOrdered)
         {
@@ -48,7 +53,7 @@ public:
             auto result = device->calculateMetric(metric, allMetrics);
             auto &calculatedMetricsForDevice = allMetrics.at(device->getName())[CALCULATED];
             if(calculatedMetricsForDevice.empty())calculatedMetricsForDevice.emplace_back();
-            calculatedMetricsForDevice[0].emplace_back(metric,result);
+            calculatedMetricsForDevice[0][metric] = result;
         }
 
         for (const auto & device : devicesWithCalculations)
@@ -56,8 +61,8 @@ public:
             auto& calculatedMetricsForDevice = allMetrics.at(device->getName())[CALCULATED];
             if(!calculatedMetricsForDevice.empty())
             {
-                calculatedMetricsForDevice[0].emplace_back(TIME_METRIC, fmt::format("{}", std::chrono::system_clock::now()));
-                calculatedMetricsForDevice[0].emplace_back(SAMPLING_METHOD_METRIC, getDisplayForSampler(CALCULATED));
+                calculatedMetricsForDevice[0][TIME_METRIC] = Measurement(fmt::format("{}", std::chrono::system_clock::now()));
+                calculatedMetricsForDevice[0][SAMPLING_METHOD_METRIC] = Measurement(getDisplayForSampler(CALCULATED));
 
             }
         }

@@ -6,9 +6,9 @@
 Counter::Counter(const CounterConfig counterConfig, FileManager& fileManager):
     counterConfig(counterConfig),
     fileManager(fileManager),
-    pollingThread(std::jthread(std::bind_front(&Counter::poll, this))),
     slowPollingDevices(std::vector<std::shared_ptr<IDevice>>(counterConfig.devices.size()))
 {
+    pollingThread = std::jthread(std::bind_front(&Counter::poll, this));
 }
 
 void Counter::start()

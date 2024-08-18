@@ -31,8 +31,7 @@ void IOFile::readIOStats() {
     std::string line;
     
     if (!file.is_open()) {
-        std::cerr << "Error opening /proc/self/io" << std::endl;
-        return;
+        throw std::runtime_error(fmt::format("Error opening file 'proc/self/io' for {} Device",getDeviceName()));
     }
 
     while (std::getline(file, line)) {
@@ -69,7 +68,7 @@ Measurement IOFile::fetchMetric(const Metric& metric) {
     return Measurement("0");
 }
 
-Measurement IOFile::calculateMetric(const Metric& metric, const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>>& requestedMetricsByDeviceBySamplingMethod) {
+Measurement IOFile::calculateMetric(const Metric& metric, const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>> &requestedMetricsByDeviceBySamplingMethod) {
     std::string rawMetricName = "raw_" + metric.name;
     uint64_t prevValue = 0, currentValue = 0;
 
@@ -78,20 +77,9 @@ Measurement IOFile::calculateMetric(const Metric& metric, const std::unordered_m
     if(metric.name == "rchar and cycles") {
         auto calcmetricvectorIOFile = requestedMetricsByDeviceBySamplingMethod.at(IOFile::getDeviceName()).at(CALCULATED)[0];
         auto calcmetricvectorPerf = requestedMetricsByDeviceBySamplingMethod.at(CPUPerf::getDeviceName()).at(CALCULATED)[0];
-        int rchar = 0;
-        double cycles = 0.0;
 
-        for (const auto& pair : calcmetricvectorIOFile) {
-            if (pair.first.name == "rchar") {
-                rchar = std::stoi(pair.second.value);
-            }
-        }
-        for (const auto& pair : calcmetricvectorPerf) {
-
-            if (pair.first.name == "cycles") {
-                cycles = std::stod(pair.second.value);
-            }
-        }
+        int rchar = std::stoi(calcmetricvectorIOFile[IOFile::getAllDeviceMetricsByName()["rchar"]].value);
+        double cycles = std::stod(calcmetricvectorPerf[CPUPerf::getAllDeviceMetricsByName()["cycles"]].value);
 
         return Measurement(fmt::format("{}",cycles/rchar));
     }

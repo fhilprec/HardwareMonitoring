@@ -11,6 +11,14 @@
 #include <fmt/core.h>
 
 
+struct MonitorConfig{
+    std::vector<std::shared_ptr<IDevice>> devices;
+    std::chrono::milliseconds timeFrame;
+    std::filesystem::path rawResultsOutputDirectory;
+    std::filesystem::path finalResultsOutputDirectory;
+    bool saveRawInEndResult = false;
+};
+
 class Monitor {
 private:
     std::vector<std::shared_ptr<IDevice>> devices;
@@ -21,8 +29,9 @@ private:
 
     bool running = false;
 public:
-    explicit Monitor(const std::vector<std::shared_ptr<IDevice>>& devices, const std::optional<std::filesystem::path>& outputDirectory)
-        : devices(devices), counter(Counter(devices, fileManager)), fileManager(FileManager(devices, outputDirectory)), calculator(Calculator(devices))
+    explicit Monitor(const MonitorConfig& config)
+        : devices(config.devices), counter(Counter({devices,config.timeFrame}, fileManager)), fileManager(FileManager(
+            devices, config.rawResultsOutputDirectory, config.finalResultsOutputDirectory, config.saveRawInEndResult)), calculator(Calculator(devices))
     {
         DependencyChecker::checkDependenciesBetweenDevicesForCalculatedMetrics(devices);
     }

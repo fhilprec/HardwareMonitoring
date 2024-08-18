@@ -25,7 +25,7 @@ public:
     virtual std::vector<Metric> getUserMetrics() const = 0;
     virtual std::vector<std::pair<Metric, Measurement>> getData(SamplingMethod sampler) = 0;
     virtual Measurement fetchMetric(const Metric &metric) = 0;
-    virtual Measurement calculateMetric(const Metric &metric, const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>>& requestedMetricsByDeviceBySamplingMethod) = 0;
+    virtual Measurement calculateMetric(const Metric &metric, const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>> &requestedMetricsByDeviceBySamplingMethod) = 0;
 
     virtual ~IDevice()=default;
 
@@ -129,7 +129,7 @@ public:
             break;
         case CALCULATED:
             throw std::invalid_argument(
-                    "This is not the intended way to get calculcated Metrics, calculated metrics are registered with the device but only calculated after fetching the (raw) metrics");
+                    "This is not the intended way to get calculated Metrics, calculated metrics are registered with the device but only calculated after fetching the (raw) metrics");
         }
         return result;
     };
