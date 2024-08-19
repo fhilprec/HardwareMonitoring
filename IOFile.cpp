@@ -7,13 +7,13 @@
 
 
 static const std::vector<Metric> METRICS{
-    Metric(TWO_SHOT, "raw_rchar", true),
-    Metric(TWO_SHOT, "raw_wchar", true),
-    Metric(TWO_SHOT, "raw_syscr", true),
-    Metric(TWO_SHOT, "raw_syscw", true),
-    Metric(TWO_SHOT, "raw_read_bytes", true),
-    Metric(TWO_SHOT, "raw_write_bytes", true),
-    Metric(TWO_SHOT, "raw_cancelled_write_bytes", true),
+    Metric(POLLING, "raw_rchar", true),
+    Metric(POLLING, "raw_wchar", true),
+    Metric(POLLING, "raw_syscr", true),
+    Metric(POLLING, "raw_syscw", true),
+    Metric(POLLING, "raw_read_bytes", true),
+    Metric(POLLING, "raw_write_bytes", true),
+    Metric(POLLING, "raw_cancelled_write_bytes", true),
     Metric(CALCULATED, "rchar", false),
     Metric(CALCULATED, "wchar", false),
     Metric(CALCULATED, "syscr", false),
