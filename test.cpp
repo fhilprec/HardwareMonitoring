@@ -7,24 +7,53 @@
 #include "Device.hpp"
 #include "CPUPerf.h"
 #include "IOFile.h"
+#include "GPUFile.h"
 #include "Monitor.h"
 
+// Function to simulate GPU work (vector addition)
+void simulateGPUWork(const std::vector<float>& A, const std::vector<float>& B, std::vector<float>& C)
+{
+    for (size_t i = 0; i < A.size(); ++i)
+    {
+        C[i] = A[i] + B[i];
+    }
+}
 
+// Function to perform some simulated GPU work
+void doSimulatedGPUWork(int numElements)
+{
+    std::vector<float> h_A(numElements);
+    std::vector<float> h_B(numElements);
+    std::vector<float> h_C(numElements);
 
-//on cluster
-/*
-rm -rf *; cmake -G Ninja -DCMAKE_C_COMPILER=$HOME/gcc-14.2.0/bin/gcc-11.1 -DCMAKE_CXX_COMPILER=$HOME/
-gcc-14.2.0/bin/g++-11.1 ..; ninja; ./TestHardwareMonitoring 
-*/
+    // Initialize input vectors
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.0, 1.0);
+    for (int i = 0; i < numElements; ++i)
+    {
+        h_A[i] = dis(gen);
+        h_B[i] = dis(gen);
+    }
 
-//cmake .; ninja; ./TestHardwareMonitoring 
+    // Perform the simulated GPU work
+    simulateGPUWork(h_A, h_B, h_C);
 
-
+    // Verify the result (optional)
+    for (int i = 0; i < numElements; ++i)
+    {
+        if (std::abs(h_A[i] + h_B[i] - h_C[i]) > 1e-5)
+        {
+            std::cerr << "Result verification failed at element " << i << std::endl;
+            break;
+        }
+    }
+}
 
 // Function to perform some CPU-intensive work
 void doCPUWork() {
     volatile int sum = 0;
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < 1000000; ++i) {
         sum += i;
     }
 }
@@ -79,23 +108,22 @@ void readFromFile(const std::string& filename) {
 int main() {
     std::vector<std::shared_ptr<IDevice>> devices;
 
-    auto* device = new IOFile();
-    devices.emplace_back((IDevice*)device);
-    auto* device2 = new CPUPerf();
-    devices.emplace_back((IDevice*)device2);
+    auto* ioDevice = new IOFile();
+    devices.emplace_back((IDevice*)ioDevice);
+    auto* cpuDevice = new CPUPerf();
+    devices.emplace_back((IDevice*)cpuDevice);
+    auto* gpuDevice = new GPUFile();
+    devices.emplace_back((IDevice*)gpuDevice);
 
     std::filesystem::path outputDirectory("testOutput");
     auto fullPath = absolute(outputDirectory);
 
-    // Create the Monitor object with the correct constructor signature
+    // Create the Monitor object
     Monitor monitor(devices, outputDirectory);
-
-    // Note: We can't set the polling time here as the constructor doesn't accept it.
-    // If you need to set a custom polling time, you might need to modify the Monitor class.
 
     monitor.start();
 
-    // Perform some CPU and I/O work
+    // Perform some CPU, I/O, and simulated GPU work
     const std::string filename = "test_file.bin";
     const int fileSizeMB = 50; // 50 MB file
 
@@ -108,6 +136,12 @@ int main() {
     std::cout << "Performing CPU work..." << std::endl;
     for (int i = 0; i < 5; ++i) {
         doCPUWork();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    std::cout << "Performing simulated GPU work..." << std::endl;
+    for (int i = 0; i < 5; ++i) {
+        doSimulatedGPUWork(1000000); // 1 million elements
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 

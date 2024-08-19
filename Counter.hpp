@@ -43,7 +43,7 @@ private:
 public:
     Counter(const std::vector<std::shared_ptr<IDevice>>& devices, FileManager& fileManager) : Counter({
         devices,
-        std::chrono::milliseconds(500)
+        std::chrono::milliseconds(100)
     }, fileManager) {}
     Counter(CounterConfig counterConfig, FileManager& fileManager);
 
