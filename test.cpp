@@ -10,6 +10,13 @@
 #include "Monitor.h"
 
 
+
+//on cluster
+/*
+rm -rf *; cmake -G Ninja -DCMAKE_C_COMPILER=$HOME/gcc-14.2.0/bin/gcc-11.1 -DCMAKE_CXX_COMPILER=$HOME/
+gcc-14.2.0/bin/g++-11.1 ..; ninja; ./TestHardwareMonitoring 
+*/
+
 //cmake .; ninja; ./TestHardwareMonitoring 
 
 
