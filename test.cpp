@@ -9,6 +9,7 @@
 #include "IOFile.h"
 #include "GPUFile.h"
 #include "Monitor.h"
+#include <cstdlib> 
 
 // Function to simulate GPU work (vector addition)
 void simulateGPUWork(const std::vector<float>& A, const std::vector<float>& B, std::vector<float>& C)
@@ -34,6 +35,16 @@ void doSimulatedGPUWork(int numElements)
     {
         h_A[i] = dis(gen);
         h_B[i] = dis(gen);
+
+        if(i % (numElements/5) == 0){
+            int ret = system("/usr/local/cuda-12/gds/tools/gdsio -d 0 -w 4 -s 4G -i 1M -x 0 -I 0 -f /dev/md127");
+            // Check if the command executed successfully
+            if (ret != 0)
+            {
+                std::cerr << "Command execution failed at element " << i << std::endl;
+                break;
+            }
+        }
     }
 
     // Perform the simulated GPU work
@@ -140,10 +151,9 @@ int main() {
     }
 
     std::cout << "Performing simulated GPU work..." << std::endl;
-    for (int i = 0; i < 5; ++i) {
-        doSimulatedGPUWork(1000000); // 1 million elements
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+    doSimulatedGPUWork(1000000); // 1 million elements
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
 
     monitor.stop();
 
