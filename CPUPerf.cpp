@@ -14,20 +14,20 @@
 #include "fmt/format.h"
 
 static const std::vector METRICS{
-    Metric(TWO_SHOT, "raw_cycles", true),
-    Metric(TWO_SHOT, "raw_kcycles", true),
-    Metric(TWO_SHOT, "raw_instructions", true),
-    Metric(TWO_SHOT, "raw_L1-misses", true),
-    Metric(TWO_SHOT, "raw_LLC-misses", true),
-    Metric(TWO_SHOT, "raw_branch-misses", true),
-    Metric(TWO_SHOT, "raw_task-clock", true),
-    Metric(CALCULATED, "cycles", false),
-    Metric(CALCULATED, "kcycles", false),
-    Metric(CALCULATED, "instructions", false),
-    Metric(CALCULATED, "L1-misses", false),
-    Metric(CALCULATED, "LLC-misses", false),
-    Metric(CALCULATED, "branch-misses", false),
-    Metric(CALCULATED, "task-clock", false),
+    Metric(POLLING, "raw_cycles", true),
+    Metric(POLLING, "raw_kcycles", true),
+    Metric(POLLING, "raw_instructions", true),
+    Metric(POLLING, "raw_L1-misses", true),
+    Metric(POLLING, "raw_LLC-misses", true),
+    Metric(POLLING, "raw_branch-misses", true),
+    Metric(POLLING, "raw_task-clock", true)
+    // Metric(CALCULATED, "cycles", false),
+    // Metric(CALCULATED, "kcycles", false),
+    // Metric(CALCULATED, "instructions", false),
+    // Metric(CALCULATED, "L1-misses", false),
+    // Metric(CALCULATED, "LLC-misses", false),
+    // Metric(CALCULATED, "branch-misses", false),
+    // Metric(CALCULATED, "task-clock", false),
 };
 
 CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device(metricsToCount)
@@ -78,15 +78,15 @@ std::vector<std::pair<Metric, Measurement>> CPUPerf::getData(const SamplingMetho
 {
 
     auto result  = Device::getData(sampler);
-    if (sampler == TWO_SHOT) first = false;
+    if (sampler == POLLING) first = false;
     return  result;
 }
 
 Measurement CPUPerf::fetchMetric(const Metric& metric)
 {
     std::vector<std::pair<Metric, Measurement>> result;
-    const size_t index = std::distance(userGivenTwoShotMetrics.begin(),
-                                    std::find(userGivenTwoShotMetrics.begin(), userGivenTwoShotMetrics.end(), metric));
+    const size_t index = std::distance(userGivenPollingMetrics.begin(),
+                                    std::find(userGivenPollingMetrics.begin(), userGivenPollingMetrics.end(), metric));
     auto& event = events[index];
     if(first)
     {
@@ -102,6 +102,7 @@ Measurement CPUPerf::fetchMetric(const Metric& metric)
     return Measurement(valueString);
 }
 
+
 Measurement CPUPerf::calculateMetric(const Metric& metric,
                                      const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>> &requestedMetricsByDeviceBySamplingMethod)
 {
@@ -115,14 +116,13 @@ Measurement CPUPerf::calculateMetric(const Metric& metric,
     }
 
     uint64_t valuePrev, timeEnabledPrev, timeRunningPrev;
-    parseData(requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(TWO_SHOT).at(0), rawMetric, valuePrev, timeEnabledPrev, timeRunningPrev);
+    parseData(requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(POLLING).at(0), rawMetric, valuePrev, timeEnabledPrev, timeRunningPrev);
 
     uint64_t valueAfter, timeEnabledAfter, timeRunningAfter;
-    parseData(requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(TWO_SHOT).at(1), rawMetric, valueAfter, timeEnabledAfter, timeRunningAfter);
+    parseData(requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(POLLING).at(1), rawMetric, valueAfter, timeEnabledAfter, timeRunningAfter);
 
     const double multiplexingCorrection = static_cast<double>(timeEnabledAfter- timeEnabledPrev) / (static_cast<double>(timeRunningAfter - timeRunningPrev)+0.01);
     return Measurement(fmt::format("{}",static_cast<double>(valueAfter - valuePrev) * multiplexingCorrection));
-
 }
 
 
