@@ -35,15 +35,12 @@ void GPUFile::readGPUStats() {
         return;
     }
 
-    std::cout << "Successfully opened " << filename << std::endl;
-
     // Reset all values to 0 before reading
     for (const auto& metric : METRICS) {
         currentValues[metric.name] = 0;
     }
 
     while (std::getline(file, line)) {
-        std::cout << "Read line: " << line << std::endl;  // Debug print
         std::istringstream iss(line);
         std::string key;
         iss >> key;
@@ -53,70 +50,53 @@ void GPUFile::readGPUStats() {
             double avg_latency;
             int result = sscanf(line.c_str(), "Batches                              : n=%lu ok=%lu err=%lu Avg-Submit-Latency(usec)=%lf",
                                 &n, &ok, &err, &avg_latency);
-            std::cout << "Batches parsing result: " << result << std::endl;  // Debug print
             if (result == 4) {
                 currentValues["raw_batches_n"] = n;
                 currentValues["raw_batches_ok"] = ok;
                 currentValues["raw_batches_err"] = err;
                 currentValues["raw_batches_avg_submit_latency"] = static_cast<uint64_t>(avg_latency);
-                std::cout << "Parsed Batches: n=" << n << " ok=" << ok << " err=" << err << " avg_latency=" << avg_latency << std::endl;  // Debug print
             }
         } else if (key == "Reads") {
             uint64_t n, ok, err, readMiB, io_state_err;
             int result = sscanf(line.c_str(), "Reads                                : n=%lu ok=%lu err=%lu readMiB=%lu io_state_err=%lu",
                                 &n, &ok, &err, &readMiB, &io_state_err);
-            std::cout << "Reads parsing result: " << result << std::endl;  // Debug print
             if (result == 5) {
                 currentValues["raw_reads_n"] = n;
                 currentValues["raw_reads_ok"] = ok;
                 currentValues["raw_reads_err"] = err;
                 currentValues["raw_reads_MiB"] = readMiB;
-                std::cout << "Parsed Reads: n=" << n << " ok=" << ok << " err=" << err << " readMiB=" << readMiB << std::endl;  // Debug print
             }
             // Read the next line for bandwidth and latency
             if (std::getline(file, line)) {
-                std::cout << "Read next line: " << line << std::endl;  // Debug print
                 double bandwidth, avg_latency;
                 result = sscanf(line.c_str(), "Reads                                : Bandwidth(MiB/s)=%lf Avg-Latency(usec)=%lf",
                                 &bandwidth, &avg_latency);
-                std::cout << "Reads bandwidth parsing result: " << result << std::endl;  // Debug print
                 if (result == 2) {
                     currentValues["raw_reads_bandwidth"] = static_cast<uint64_t>(bandwidth);
                     currentValues["raw_reads_avg_latency"] = static_cast<uint64_t>(avg_latency);
-                    std::cout << "Parsed Reads bandwidth: " << bandwidth << " avg_latency=" << avg_latency << std::endl;  // Debug print
                 }
             }
         } else if (key == "Writes") {
             uint64_t n, ok, err, writeMiB, io_state_err, pg_cache, pg_cache_fail, pg_cache_eio;
             int result = sscanf(line.c_str(), "Writes                               : n=%lu ok=%lu err=%lu writeMiB=%lu io_state_err=%lu pg-cache=%lu pg-cache-fail=%lu pg-cache-eio=%lu",
                                 &n, &ok, &err, &writeMiB, &io_state_err, &pg_cache, &pg_cache_fail, &pg_cache_eio);
-            std::cout << "Writes parsing result: " << result << std::endl;  // Debug print
             if (result == 8) {
                 currentValues["raw_writes_n"] = n;
                 currentValues["raw_writes_ok"] = ok;
                 currentValues["raw_writes_err"] = err;
                 currentValues["raw_writes_MiB"] = writeMiB;
-                std::cout << "Parsed Writes: n=" << n << " ok=" << ok << " err=" << err << " writeMiB=" << writeMiB << std::endl;  // Debug print
             }
             // Read the next line for bandwidth and latency
             if (std::getline(file, line)) {
-                std::cout << "Read next line: " << line << std::endl;  // Debug print
                 double bandwidth, avg_latency;
                 result = sscanf(line.c_str(), "Writes                               : Bandwidth(MiB/s)=%lf Avg-Latency(usec)=%lf",
                                 &bandwidth, &avg_latency);
-                std::cout << "Writes bandwidth parsing result: " << result << std::endl;  // Debug print
                 if (result == 2) {
                     currentValues["raw_writes_bandwidth"] = static_cast<uint64_t>(bandwidth);
                     currentValues["raw_writes_avg_latency"] = static_cast<uint64_t>(avg_latency);
-                    std::cout << "Parsed Writes bandwidth: " << bandwidth << " avg_latency=" << avg_latency << std::endl;  // Debug print
                 }
             }
         }
-    }
-
-    std::cout << "Finished reading GPU stats. Current values:" << std::endl;
-    for (const auto& [key, value] : currentValues) {
-        std::cout << key << ": " << value << std::endl;
     }
 }
 
@@ -154,12 +134,6 @@ std::vector<std::pair<Metric, Measurement>> GPUFile::getData(SamplingMethod samp
         } else {
             prevValues = currentValues;
         }
-    }
-
-    // Debug output
-    std::cout << "getData() result:" << std::endl;
-    for (const auto& [metric, measurement] : result) {
-        std::cout << metric.name << ": " << measurement.value << std::endl;
     }
 
     return result;
