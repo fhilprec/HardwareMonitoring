@@ -19,6 +19,7 @@ void Monitor::stop()
         counter.stop();
         running = false;
         calculator.calculateAndWrite(fileManager);
+        devices.clear();
     }else
     {
         throw std::logic_error("Monitor has not started");

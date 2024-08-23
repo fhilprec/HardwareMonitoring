@@ -76,7 +76,7 @@ int main() {
     auto fullPath = absolute(outputDirectory);
 
     // Create the Monitor object with the correct constructor signature
-    Monitor monitor({devices,std::chrono::milliseconds(500),outputDirectory, outputDirectory, false});
+    Monitor monitor({devices,std::chrono::milliseconds(500),outputDirectory, outputDirectory});
 
     // Note: We can't set the polling time here as the constructor doesn't accept it.
     // If you need to set a custom polling time, you might need to modify the Monitor class.

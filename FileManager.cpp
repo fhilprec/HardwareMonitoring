@@ -7,8 +7,8 @@
 
 FileManager::FileManager(const std::vector<std::shared_ptr<IDevice>> &devices,
                          const std::filesystem::path &tempOutputDirectory,
-                         const std::filesystem::path &outputDirectory, bool saveRawResults)
-        : tempOutputDirectory(tempOutputDirectory), outputDirectory(outputDirectory), showRawMetricsInResult(saveRawResults) {
+                         const std::filesystem::path &outputDirectory)
+        : tempOutputDirectory(tempOutputDirectory), outputDirectory(outputDirectory){
     if (!is_directory(outputDirectory)) {
         throw std::invalid_argument(fmt::format("Path '{}' is not a directory",
                                                 outputDirectory.string()));
@@ -33,7 +33,7 @@ FileManager::FileManager(const std::vector<std::shared_ptr<IDevice>> &devices,
         std::vector<Metric> headerMetrics;
         headerMetrics.reserve(userMetrics.size() + counterMetrics.size());
         for (const auto &userMetric: userMetrics) {
-            if (userMetric.samplingMethod != CALCULATED) {
+            if (userMetric.useForMeasurement) {
                 headerMetrics.push_back(userMetric);
             }
         }
@@ -67,7 +67,7 @@ FileManager::readAllFromBuffer(const std::shared_ptr<IDevice> &device) const {
 }
 
 void FileManager::save(
-        std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>>
+        std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<SamplingMethod, std::unordered_map<bool,std::vector<std::unordered_map<Metric, Measurement>>>>>
         data) {
     for (const auto &[device, ignored]: filePathsForDevices) {
         auto path = outputDirectory;
@@ -75,9 +75,7 @@ void FileManager::save(
         auto output = std::make_shared<std::ofstream>(std::ofstream(std::ofstream(filePath)));
 
         std::vector<Metric> userMetrics = device->getUserMetrics();
-        if (!showRawMetricsInResult) {
-            std::erase_if(userMetrics, [](const Metric &metric) { return metric.raw; });
-        }
+        std::erase_if(userMetrics, [](const Metric &metric) { return !metric.showInResult; });
         std::vector<Metric> counterMetrics = Counter::getAdditionalMetricsAdded();
 
         std::vector<Metric> headerMetrics;
@@ -88,18 +86,25 @@ void FileManager::save(
 
         const std::string header = createHeaderString(headerMetrics);
         output->write(header.c_str(), header.size());
-        for (const auto &[sampler, rows]: data.at(device)) {
-            for (const auto &row: rows) {
-                if (row.empty()) continue;
-                if (!showRawMetricsInResult) {
-                    bool allRaw = true;
-                    for (const auto &[metric, measurement]: row) {
-                        allRaw &= metric.raw;
+        for (const auto &[sampler, metricsByCalculated]: data.at(device))
+        {
+            for (const auto & [calculated,rows] : metricsByCalculated){
+                for (auto row: rows) {
+                    if (row.empty()) continue;
+                    if(!calculated)
+                    {
+                        std::erase_if(row,[](const std::pair<Metric, Measurement> &pair){return pair.first.showInResult && pair.first.useForCalculation;});
                     }
-                    if (allRaw) continue;
+
+                    bool allMetricsAreNotToBeShown = true;
+                    for (const auto & [metric,measurement] : row)
+                    {
+                        allMetricsAreNotToBeShown&=!metric.showInResult;
+                    }
+                    if(allMetricsAreNotToBeShown)continue;
+                    std::string line = lineToStringOrdered(row, headerMetrics);
+                    if (!line.empty()) output->write(line.c_str(), line.size());
                 }
-                std::string line = lineToStringOrdered(row, headerMetrics);
-                if (!line.empty()) output->write(line.c_str(), line.size());
             }
         }
     }
@@ -165,13 +170,13 @@ std::vector<Metric> FileManager::readMetrics(const std::shared_ptr<IDevice> &dev
         for (auto &allowedMetric: device->getUserMetrics()) {
             if (allowedMetric.name == currentLine) {
                 res.push_back(allowedMetric);
-                continue;
+                break;
             }
         }
         for (auto &counterMetric: Counter::getAdditionalMetricsAdded()) {
             if (counterMetric.name == currentLine) {
                 res.push_back(counterMetric);
-                continue;
+                break;
             }
         }
     }

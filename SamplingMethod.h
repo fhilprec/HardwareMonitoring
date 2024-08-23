@@ -9,9 +9,7 @@ enum SamplingMethod {
     /* Reads both at the start and the end of the process and returns the difference */
     TWO_SHOT = 1,
     /* Reads at an interval */
-    POLLING = 2,
-    /* Is not read but calculated afterward */
-    CALCULATED = 3
+    POLLING = 2
 };
 
 static const std::string EnumStrings[] = { "One Shot", "Two Shot", "Polling", "Calculated" };

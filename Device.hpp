@@ -25,7 +25,9 @@ public:
     virtual std::vector<Metric> getUserMetrics() const = 0;
     virtual std::vector<std::pair<Metric, Measurement>> getData(SamplingMethod sampler) = 0;
     virtual Measurement fetchMetric(const Metric &metric) = 0;
-    virtual Measurement calculateMetric(const Metric &metric, const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>> &requestedMetricsByDeviceBySamplingMethod) = 0;
+    virtual Measurement calculateMetric(const Metric& metric, const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::unordered_map<
+                                        bool, std::vector<std::unordered_map<Metric, Measurement>>>>>&
+                                        requestedMetricsByDeviceBySamplingMethod, size_t timeIndexForMetric) = 0;
 
     virtual ~IDevice()=default;
 
@@ -61,35 +63,50 @@ private:
                     metricsToUse.push_back(metric);
                 }
             }
-            for (const auto &[name,metric]: ActualDevice::getAllDeviceMetricsByName()){
-                if(metric.raw && std::find(metricsToUse.begin(), metricsToUse.end(),metric) == std::end(metricsToUse)){
-                    metricsToUse.push_back(metric);
-                }
-            }
 
         for (const auto &metric: metricsToUse){
-            switch (metric.samplingMethod)
+            if(metric.useForCalculation)
             {
-            case ONE_SHOT:
-                userGivenOneShotMetrics.push_back(metric);
-                break;
-            case TWO_SHOT:
-                userGivenTwoShotMetrics.push_back(metric);
-                break;
-            case POLLING:
-                userGivenPollingMetrics.push_back(metric);
-                break;
-            case CALCULATED:
-                userGivenCalculationMetrics.push_back(metric);
+                switch (metric.samplingMethod)
+                {
+                case ONE_SHOT:
+                    userGivenCalculatedOneShotMetrics.push_back(metric);
+                    break;
+                case TWO_SHOT:
+                    userGivenCalculatedTwoShotMetrics.push_back(metric);
+                    break;
+                case POLLING:
+                    userGivenCalulcatedPollingMetrics.push_back(metric);
+                    break;
+                }
+            }
+            if(metric.useForMeasurement)
+            {
+                switch (metric.samplingMethod)
+                {
+                case ONE_SHOT:
+                    userGivenMeasurementOneShotMetrics.push_back(metric);
+                    break;
+                case TWO_SHOT:
+                    userGivenMeasurementTwoShotMetrics.push_back(metric);
+                    break;
+                case POLLING:
+                    userGivenMeasurementPollingMetrics.push_back(metric);
+                    break;
+                }
             }
         }
     };
 
 protected:
-    std::vector<Metric> userGivenPollingMetrics;
-    std::vector<Metric> userGivenOneShotMetrics;
-    std::vector<Metric> userGivenTwoShotMetrics;
-    std::vector<Metric> userGivenCalculationMetrics;
+    // Metrics used in Fetching
+    std::vector<Metric> userGivenMeasurementPollingMetrics;
+    std::vector<Metric> userGivenMeasurementOneShotMetrics;
+    std::vector<Metric> userGivenMeasurementTwoShotMetrics;
+    // Metrics used in Calculation
+    std::vector<Metric> userGivenCalulcatedPollingMetrics;
+    std::vector<Metric> userGivenCalculatedOneShotMetrics;
+    std::vector<Metric> userGivenCalculatedTwoShotMetrics;
 
     explicit Device(const std::vector<Metric> &userMetrics):userMetrics(userMetrics){
         static_assert(std::is_base_of_v<Device, ActualDevice>, "Template class should be the derived class of Device itself");
@@ -109,27 +126,25 @@ public:
     std::vector<Metric> getUserMetrics() const override {
         return userMetrics;
     };
-    std::vector<std::pair<Metric, Measurement>> getData(SamplingMethod sampler) override {
+    std::vector<std::pair<Metric, Measurement>> getData(const SamplingMethod sampler) override {
         std::vector<std::pair<Metric, Measurement>> result;
-        switch (sampler) {
+        switch (sampler)
+        {
         case POLLING:
-            for (const auto &pollingMetric: userGivenPollingMetrics) {
+            for (const auto &pollingMetric: userGivenMeasurementPollingMetrics) {
                 result.emplace_back(pollingMetric, fetchMetric(pollingMetric));
             }
             break;
         case ONE_SHOT:
-            for (const auto &pollingMetric: userGivenOneShotMetrics) {
-                result.emplace_back(pollingMetric, fetchMetric(pollingMetric));
+            for (const auto &oneShotMetric: userGivenMeasurementOneShotMetrics) {
+                result.emplace_back(oneShotMetric, fetchMetric(oneShotMetric));
             }
             break;
         case TWO_SHOT:
-            for (const auto &pollingMetric: userGivenTwoShotMetrics) {
-                result.emplace_back(pollingMetric, fetchMetric(pollingMetric));
+            for (const auto &twoShotMetric: userGivenMeasurementTwoShotMetrics) {
+                result.emplace_back(twoShotMetric, fetchMetric(twoShotMetric));
             }
             break;
-        case CALCULATED:
-            throw std::invalid_argument(
-                    "This is not the intended way to get calculated Metrics, calculated metrics are registered with the device but only calculated after fetching the (raw) metrics");
         }
         return result;
     };

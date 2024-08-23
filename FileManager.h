@@ -19,16 +19,15 @@ class FileManager {
     std::unordered_map<std::shared_ptr<IDevice>, std::shared_ptr<std::ofstream>> tempDataForDevices;
     std::filesystem::path tempOutputDirectory;
     std::filesystem::path outputDirectory;
-    bool showRawMetricsInResult;
 
 public:
     FileManager(const std::vector<std::shared_ptr<IDevice>> &devices,
                 const std::filesystem::path& tempOutputDirectory,
-                const std::filesystem::path& outputDirectory,
-                bool saveRawResults);
+                const std::filesystem::path& outputDirectory);
     void writeToBuffer(const std::shared_ptr<IDevice>& device, const std::vector<std::pair<Metric, Measurement>>& line);
     std::vector<std::unordered_map<Metric, Measurement>>  readAllFromBuffer(const std::shared_ptr<IDevice>& device) const;
-    void save(std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>> data);
+    void save(std::unordered_map<std::shared_ptr<IDevice>, std::unordered_map<SamplingMethod, std::unordered_map<bool, std::vector
+        <std::unordered_map<Metric, Measurement>>>>> data);
     static std::string createHeaderString(const std::vector<Metric>& metrics);
 
 private:

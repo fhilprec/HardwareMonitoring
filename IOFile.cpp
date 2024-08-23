@@ -7,21 +7,14 @@
 
 
 static const std::vector<Metric> METRICS{
-    Metric(TWO_SHOT, "raw_rchar", true),
-    Metric(TWO_SHOT, "raw_wchar", true),
-    Metric(TWO_SHOT, "raw_syscr", true),
-    Metric(TWO_SHOT, "raw_syscw", true),
-    Metric(TWO_SHOT, "raw_read_bytes", true),
-    Metric(TWO_SHOT, "raw_write_bytes", true),
-    Metric(TWO_SHOT, "raw_cancelled_write_bytes", true),
-    Metric(CALCULATED, "rchar", false),
-    Metric(CALCULATED, "wchar", false),
-    Metric(CALCULATED, "syscr", false),
-    Metric(CALCULATED, "syscw", false),
-    Metric(CALCULATED, "read_bytes", false),
-    Metric(CALCULATED, "write_bytes", false),
-    Metric(CALCULATED, "cancelled_write_bytes", false),
-    Metric(CALCULATED, "rchar and cycles", false)
+    Metric(POLLING, "rchar", true),
+    Metric(POLLING, "wchar", true),
+    Metric(POLLING, "syscr", true),
+    Metric(POLLING, "syscw", true),
+    Metric(POLLING, "read_bytes", true),
+    Metric(POLLING, "write_bytes", true),
+    Metric(POLLING, "cancelled_write_bytes", true),
+    Metric(POLLING, "rchar and cycles", false, true ,true)
 };
 
 IOFile::IOFile() : Device(METRICS) {}
@@ -47,36 +40,27 @@ void IOFile::readIOStats() {
 }
 
 std::vector<std::pair<Metric, Measurement>> IOFile::getData(SamplingMethod sampler) {
-    readIOStats();
+    if(sampler == POLLING) readIOStats();
     auto result = Device::getData(sampler);
-    if (sampler == TWO_SHOT) {
-        if (first) {
-            first = false;
-        } else {
-            prevValues = currentValues;
-        }
-    }
     return result;
 }
 
 Measurement IOFile::fetchMetric(const Metric& metric) {
-    std::string metricName = metric.name.substr(4); // Remove "raw_" prefix
-    auto it = currentValues.find(metricName);
+    auto it = currentValues.find(metric.name);
     if (it != currentValues.end()) {
         return Measurement(std::to_string(it->second));
     }
     return Measurement("0");
 }
 
-Measurement IOFile::calculateMetric(const Metric& metric, const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>> &requestedMetricsByDeviceBySamplingMethod) {
-    std::string rawMetricName = "raw_" + metric.name;
+Measurement IOFile::calculateMetric(const Metric& metric, const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::unordered_map<
+                                    bool, std::vector<std::unordered_map<Metric, Measurement>>>>>&
+                                    requestedMetricsByDeviceBySamplingMethod, size_t timeIndexForMetric) {
     uint64_t prevValue = 0, currentValue = 0;
 
-    auto deviceData = requestedMetricsByDeviceBySamplingMethod.find(getDeviceName());
-
     if(metric.name == "rchar and cycles") {
-        auto calcmetricvectorIOFile = requestedMetricsByDeviceBySamplingMethod.at(IOFile::getDeviceName()).at(CALCULATED)[0];
-        auto calcmetricvectorPerf = requestedMetricsByDeviceBySamplingMethod.at(CPUPerf::getDeviceName()).at(CALCULATED)[0];
+        auto calcmetricvectorIOFile = requestedMetricsByDeviceBySamplingMethod.at(IOFile::getDeviceName()).at(POLLING).at(timeIndexForMetric).at(true);
+        auto calcmetricvectorPerf = requestedMetricsByDeviceBySamplingMethod.at(CPUPerf::getDeviceName()).at(POLLING).at(timeIndexForMetric).at(true);
 
         int rchar = std::stoi(calcmetricvectorIOFile[IOFile::getAllDeviceMetricsByName()["rchar"]].value);
         double cycles = std::stod(calcmetricvectorPerf[CPUPerf::getAllDeviceMetricsByName()["cycles"]].value);
@@ -84,31 +68,12 @@ Measurement IOFile::calculateMetric(const Metric& metric, const std::unordered_m
         return Measurement(fmt::format("{}",cycles/rchar));
     }
 
+    if(timeIndexForMetric == 0) return Measurement("0");
+    auto deviceData = requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(POLLING).at(false);
+    prevValue = std::stoull(deviceData.at(timeIndexForMetric-1).at(metric).value);
+    currentValue = std::stoull(deviceData.at(timeIndexForMetric).at(metric).value);
 
-    if (deviceData == requestedMetricsByDeviceBySamplingMethod.end()) {
-        return Measurement("0");
-    }
-
-    auto samplingData = deviceData->second.find(TWO_SHOT);
-    if (samplingData == deviceData->second.end() || samplingData->second.size() < 2) {
-        return Measurement("0");
-    }
-
-    for (const auto& [m, measurement] : samplingData->second[0]) {
-        if (m.name == rawMetricName) {
-            prevValue = std::stoull(measurement.value);
-            break;
-        }
-    }
-
-    for (const auto& [m, measurement] : samplingData->second[1]) {
-        if (m.name == rawMetricName) {
-            currentValue = std::stoull(measurement.value);
-            break;
-        }
-    }
-
-    return Measurement(std::to_string(currentValue - prevValue));
+    return Measurement(fmt::format("{}",currentValue - prevValue));
 }
 
 std::string IOFile::getDeviceName() {
@@ -129,5 +94,5 @@ std::unordered_map<std::string, std::vector<Metric>> IOFile::getNeededMetricsFor
         return {{getDeviceName(), {getAllDeviceMetricsByName()["rchar"]}},
             {CPUPerf::getDeviceName(), {CPUPerf::getAllDeviceMetricsByName()["cycles"]}}};
     }
-    return {{getDeviceName(), {METRICS[metricIndex - METRICS.size() / 2]}}};
+    return {{getDeviceName(), {METRICS[metricIndex]}}};
 }

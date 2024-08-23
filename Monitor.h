@@ -16,7 +16,6 @@ struct MonitorConfig{
     std::chrono::milliseconds timeFrame;
     std::filesystem::path rawResultsOutputDirectory;
     std::filesystem::path finalResultsOutputDirectory;
-    bool saveRawInEndResult = false;
 };
 
 class Monitor {
@@ -31,7 +30,7 @@ private:
 public:
     explicit Monitor(const MonitorConfig& config)
         : devices(config.devices), counter(Counter({devices,config.timeFrame}, fileManager)), fileManager(FileManager(
-            devices, config.rawResultsOutputDirectory, config.finalResultsOutputDirectory, config.saveRawInEndResult)), calculator(Calculator(devices))
+            devices, config.rawResultsOutputDirectory, config.finalResultsOutputDirectory)), calculator(Calculator(devices))
     {
         DependencyChecker::checkDependenciesBetweenDevicesForCalculatedMetrics(devices);
     }

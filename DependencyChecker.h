@@ -29,28 +29,19 @@ class DependencyChecker {
         for (const auto &[device, wantedMetrics]: wantedMetricsByAllDevices){
             for (const auto &[wantedDeviceName, wantedMetricsForDevice]: wantedMetrics){
                 if(!deviceNames.contains(wantedDeviceName)){
-                    errorMessages.append(fmt::format("Metrics wanted from Device '%s' for Calculation of Metrics by Device '%s' but Device '%s' is not registered for Measurement.\n", wantedDeviceName, device->getName(), wantedDeviceName));
+                    errorMessages.append(fmt::format("Metrics wanted from Device '{}' for Calculation of Metrics by Device '{}' but Device '{}' is not registered for Measurement.\n", wantedDeviceName, device->getName(), wantedDeviceName));
                 }
             }
         }
 
         if(!errorMessages.empty()){
-            throw std::logic_error(fmt::format("Some Devices are Missing for Measurement:\n%s", errorMessages));
+            throw std::logic_error(fmt::format("Some Devices are Missing for Measurement:\n{}", errorMessages));
         }
     }
     
     static bool deviceHasWantedMetric(std::shared_ptr<IDevice>& device, const Metric& metric) {
-        const std::unordered_map<std::string,Metric> &allowedMetrics = device->getAllMetricsByName();
-
-        if(allowedMetrics.contains(metric.name)) return false;
-
-        Metric foundMetric = allowedMetrics.at(metric.name);
-        if(foundMetric.raw){
-            return true;
-        }
-
         const std::vector<Metric> &chosenMetrics = device->getUserMetrics();
-        return std::find(chosenMetrics.begin(), chosenMetrics.end(), foundMetric) != std::end(chosenMetrics);
+        return std::find(chosenMetrics.begin(), chosenMetrics.end(), metric) != std::end(chosenMetrics);
 
     }
 public:
@@ -65,7 +56,7 @@ public:
         {
             for (const auto & userMetric : device_ptr->getUserMetrics())
             {
-                if(userMetric.samplingMethod == CALCULATED)
+                if(userMetric.useForCalculation)
                 {
                     std::pair currentMetric = {device_ptr,userMetric};
                     for (const auto & [deviceName, wantedMetrics] : device_ptr->getNeededMetricsOfOtherDevicesForCalculatedMetric(userMetric))
@@ -74,7 +65,10 @@ public:
 
                         for (const auto & wanted_metric : wantedMetrics)
                         {
-                            otherMetricNodes.emplace_back(deviceByDeviceName.at(deviceName),wanted_metric);
+                            if(!(wanted_metric == userMetric && wanted_metric.useForMeasurement && wanted_metric.useForCalculation))
+                            {
+                                otherMetricNodes.emplace_back(deviceByDeviceName.at(deviceName),wanted_metric);
+                            }
                         }
 
                         metricGraph.addEdge(currentMetric, otherMetricNodes);
@@ -84,9 +78,9 @@ public:
         }
 
         auto result = metricGraph.topologicalSort();
-        std::erase_if(result, [](const auto& metric)
+        std::erase_if(result, [](const std::pair<std::shared_ptr<IDevice>,Metric>& metricPair)
         {
-            return metric.second.samplingMethod != CALCULATED;
+            return !metricPair.second.useForCalculation;
         });
         return result;
     }
@@ -105,14 +99,14 @@ public:
                 std::shared_ptr<IDevice> wantedDevice = deviceByDeviceName.at(wantedDeviceName);
                 for (const auto &wantedMetric: wantedMetricsForDevice){
                     if(!deviceHasWantedMetric(wantedDevice, wantedMetric)){
-                        errorMessages.append(fmt::format("Metric '%s' of Device '%s' wanted from Device '%s', but was not registered for Measurement", wantedMetric.name, wantedDevice->getName(), device->getName()));
+                        errorMessages.append(fmt::format("Metric '{}' of Device '{}' wanted from Device '{}', but was not registered for Measurement", wantedMetric.name, wantedDevice->getName(), device->getName()));
                     }
                 }
             }
         }
 
         if(!errorMessages.empty()){
-            throw std::logic_error(fmt::format("Some Metrics used by other Devices for Calculation are Missing for Measurement:\n%s", errorMessages));
+            throw std::logic_error(fmt::format("Some Metrics used by other Devices for Calculation are Missing for Measurement:\n{}", errorMessages));
         }
 
         getSortedCalculatedMetrics(devices);
@@ -124,7 +118,7 @@ public:
         for (const auto& device: devices){
             std::unordered_map<std::string, std::vector<Metric>> wantedMetricByDevice;
             for (const auto &metric: device->getUserMetrics()){
-                if(metric.samplingMethod == CALCULATED) {
+                if(metric.useForCalculation) {
                     auto neededMetrics = device->getNeededMetricsOfOtherDevicesForCalculatedMetric(metric);
                     for (const auto & [deviceName, neededMetrics] : neededMetrics)
                     {

@@ -56,7 +56,7 @@ void Counter::poll(const std::stop_token& stop_token)
     fetchData(ONE_SHOT);
 }
 
-void Counter::fetchData(SamplingMethod sampleMethod)
+void Counter::fetchData(const SamplingMethod sampleMethod)
 {
     for (const auto& device : counterConfig.devices)
     {

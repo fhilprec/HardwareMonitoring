@@ -14,32 +14,25 @@
 #include "fmt/format.h"
 
 static const std::vector METRICS{
-    Metric(TWO_SHOT, "raw_cycles", true),
-    Metric(TWO_SHOT, "raw_kcycles", true),
-    Metric(TWO_SHOT, "raw_instructions", true),
-    Metric(TWO_SHOT, "raw_L1-misses", true),
-    Metric(TWO_SHOT, "raw_LLC-misses", true),
-    Metric(TWO_SHOT, "raw_branch-misses", true),
-    Metric(TWO_SHOT, "raw_task-clock", true),
-    Metric(CALCULATED, "cycles", false),
-    Metric(CALCULATED, "kcycles", false),
-    Metric(CALCULATED, "instructions", false),
-    Metric(CALCULATED, "L1-misses", false),
-    Metric(CALCULATED, "LLC-misses", false),
-    Metric(CALCULATED, "branch-misses", false),
-    Metric(CALCULATED, "task-clock", false),
+    Metric(POLLING, "cycles", true),
+    Metric(POLLING, "kcycles", true),
+    Metric(POLLING, "instructions", true),
+    Metric(POLLING, "L1-misses", true),
+    Metric(POLLING, "LLC-misses", true),
+    Metric(POLLING, "branch-missese", true),
+    Metric(POLLING, "task-clock", true)
 };
 
 CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device(metricsToCount)
 {
     for (auto& metric: Device::getUserMetrics()) {
-        if(metric.name == "raw_cycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
-        if(metric.name == "raw_kcycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
-        if(metric.name == "raw_instructions") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS);
-        if(metric.name == "raw_L1-misses") registerCounter(PERF_TYPE_HW_CACHE, PERF_COUNT_HW_CACHE_L1D|(PERF_COUNT_HW_CACHE_OP_READ<<8)|(PERF_COUNT_HW_CACHE_RESULT_MISS<<16));
-        if(metric.name == "raw_LLC-misses") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CACHE_MISSES);
-        if(metric.name == "raw_branch-misses") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_BRANCH_MISSES);
-        if(metric.name == "raw_task-clock") registerCounter(PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK);
+        if(metric.name == "cycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
+        if(metric.name == "kcycles") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES);
+        if(metric.name == "instructions") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS);
+        if(metric.name == "L1-misses") registerCounter(PERF_TYPE_HW_CACHE, PERF_COUNT_HW_CACHE_L1D|(PERF_COUNT_HW_CACHE_OP_READ<<8)|(PERF_COUNT_HW_CACHE_RESULT_MISS<<16));
+        if(metric.name == "LLC-misses") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CACHE_MISSES);
+        if(metric.name == "branch-misses") registerCounter(PERF_TYPE_HARDWARE, PERF_COUNT_HW_BRANCH_MISSES);
+        if(metric.name == "task-clock") registerCounter(PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK);
     }
 
 
@@ -78,15 +71,15 @@ std::vector<std::pair<Metric, Measurement>> CPUPerf::getData(const SamplingMetho
 {
 
     auto result  = Device::getData(sampler);
-    if (sampler == TWO_SHOT) first = false;
+    if (sampler == POLLING) first = false;
     return  result;
 }
 
 Measurement CPUPerf::fetchMetric(const Metric& metric)
 {
     std::vector<std::pair<Metric, Measurement>> result;
-    const size_t index = std::distance(userGivenTwoShotMetrics.begin(),
-                                    std::find(userGivenTwoShotMetrics.begin(), userGivenTwoShotMetrics.end(), metric));
+    const size_t index = std::distance(userGivenMeasurementTwoShotMetrics.begin(),
+                                    std::find(userGivenMeasurementTwoShotMetrics.begin(), userGivenMeasurementTwoShotMetrics.end(), metric));
     auto& event = events[index];
     if(first)
     {
@@ -94,35 +87,25 @@ Measurement CPUPerf::fetchMetric(const Metric& metric)
         ioctl(event.fd, PERF_EVENT_IOC_ENABLE, 0);
     }
     read(event.fd, &event.data, sizeof(uint64_t) * 3);
-    if(!first)
-    {
-        ioctl(event.fd, PERF_EVENT_IOC_DISABLE, 0);
-    }
     const std::string valueString = fmt::format("{}|{}|{}",event.data.value,event.data.time_enabled,event.data.time_running);
     return Measurement(valueString);
 }
 
 Measurement CPUPerf::calculateMetric(const Metric& metric,
-                                     const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::unordered_map<Metric, Measurement>>>> &requestedMetricsByDeviceBySamplingMethod)
+                                     const std::unordered_map<std::string, std::unordered_map<SamplingMethod,  std::unordered_map<bool,std::vector<std::unordered_map<Metric, Measurement>>>>>&
+                                     requestedMetricsByDeviceBySamplingMethod,
+                                     size_t timeIndexForMetric)
 {
-    Metric rawMetric;
-    for (const auto & user_metric : getUserMetrics())
-    {
-        if(user_metric.raw && user_metric.name.find(metric.name) != std::string::npos)
-        {
-            rawMetric = user_metric;
-        }
-    }
+    if(timeIndexForMetric == 0) return Measurement("0");
 
     uint64_t valuePrev, timeEnabledPrev, timeRunningPrev;
-    parseData(requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(TWO_SHOT).at(0), rawMetric, valuePrev, timeEnabledPrev, timeRunningPrev);
+    parseData(requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(POLLING).at(false).at(timeIndexForMetric-1), metric, valuePrev, timeEnabledPrev, timeRunningPrev);
 
     uint64_t valueAfter, timeEnabledAfter, timeRunningAfter;
-    parseData(requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(TWO_SHOT).at(1), rawMetric, valueAfter, timeEnabledAfter, timeRunningAfter);
+    parseData(requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(POLLING).at(false).at(timeIndexForMetric), metric, valueAfter, timeEnabledAfter, timeRunningAfter);
 
     const double multiplexingCorrection = static_cast<double>(timeEnabledAfter- timeEnabledPrev) / (static_cast<double>(timeRunningAfter - timeRunningPrev)+0.01);
     return Measurement(fmt::format("{}",static_cast<double>(valueAfter - valuePrev) * multiplexingCorrection));
-
 }
 
 
@@ -156,12 +139,14 @@ std::unordered_map<std::string, std::vector<Metric>> CPUPerf::getNeededMetricsFo
 {
     // Could also be done with switch case on metric name
     const size_t metricIndex = std::distance(METRICS.begin(),std::find(METRICS.begin(), METRICS.end(), metric));
-    return {{getDeviceName(),{METRICS[metricIndex-METRICS.size()/2]}}};
+    return {{getDeviceName(),{METRICS[metricIndex]}}};
 }
 
 CPUPerf::~CPUPerf() {
+
     for (auto& event : events)
     {
+        ioctl(event.fd, PERF_EVENT_IOC_DISABLE, 0);
         close(event.fd);
     }
 }

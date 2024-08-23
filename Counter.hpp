@@ -22,9 +22,9 @@ struct CounterConfig
     const std::chrono::milliseconds pollingTimeFrame;
 };
 
-static const Metric SAMPLING_METHOD_METRIC = {CALCULATED, "The Sampling Method used", true};
-static const Metric TIME_METRIC = {CALCULATED, "Time of Polling", true};
-static const Metric TIME_TAKEN_POLLING_METRIC = {CALCULATED, "Time Taken for Polling", true};
+static const Metric SAMPLING_METHOD_METRIC = {ONE_SHOT, "The Sampling Method used", false, false,false};
+static const Metric TIME_METRIC = {ONE_SHOT, "Time of Polling", false, false,false};
+static const Metric TIME_TAKEN_POLLING_METRIC = {ONE_SHOT, "Time Taken for Polling", false, false,false};
 
 class Counter
 {
