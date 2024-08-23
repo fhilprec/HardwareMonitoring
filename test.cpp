@@ -8,6 +8,59 @@
 #include "CPUPerf.h"
 #include "IOFile.h"
 #include "Monitor.h"
+#include "GPUFile.h"
+
+
+// Function to simulate GPU work (vector addition)
+void simulateGPUWork(const std::vector<float>& A, const std::vector<float>& B, std::vector<float>& C)
+{
+    for (size_t i = 0; i < A.size(); ++i)
+    {
+        C[i] = A[i] + B[i];
+    }
+}
+
+// Function to perform some simulated GPU work
+void doSimulatedGPUWork(int numElements)
+{
+    std::vector<float> h_A(numElements);
+    std::vector<float> h_B(numElements);
+    std::vector<float> h_C(numElements);
+
+    // Initialize input vectors
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.0, 1.0);
+    for (int i = 0; i < numElements; ++i)
+    {
+        h_A[i] = dis(gen);
+        h_B[i] = dis(gen);
+
+        if(i % (numElements/5) == 0){
+            int ret = system("/usr/local/cuda-12/gds/tools/gdsio -d 0 -w 4 -s 4G -i 1M -x 0 -I 0 -f /dev/md127");
+            // Check if the command executed successfully
+            if (ret != 0)
+            {
+                std::cerr << "Command execution failed at element " << i << std::endl;
+                break;
+            }
+        }
+    }
+
+    // Perform the simulated GPU work
+    simulateGPUWork(h_A, h_B, h_C);
+
+    // Verify the result (optional)
+    for (int i = 0; i < numElements; ++i)
+    {
+        if (std::abs(h_A[i] + h_B[i] - h_C[i]) > 1e-5)
+        {
+            std::cerr << "Result verification failed at element " << i << std::endl;
+            break;
+        }
+    }
+}
+
 
 // Function to perform some CPU-intensive work
 void doCPUWork() {
@@ -71,6 +124,8 @@ int main() {
     devices.emplace_back((IDevice*)device);
     auto* device2 = new CPUPerf();
     devices.emplace_back((IDevice*)device2);
+    auto* gpuDevice = new GPUFile();
+    devices.emplace_back((IDevice*)gpuDevice);
 
     std::filesystem::path outputDirectory("testOutput");
     auto fullPath = absolute(outputDirectory);
@@ -98,6 +153,11 @@ int main() {
         doCPUWork();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
+
+    std::cout << "Performing simulated GPU work..." << std::endl;
+    doSimulatedGPUWork(1000000); // 1 million elements
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
 
     monitor.stop();
 

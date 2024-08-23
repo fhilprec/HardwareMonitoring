@@ -62,7 +62,6 @@ add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
         DependencyChecker.cpp
         DependencyChecker.h
         IOFile.cpp
-        IOFile.h
         Graph.cpp
         Graph.h
         GPUFile.cpp
