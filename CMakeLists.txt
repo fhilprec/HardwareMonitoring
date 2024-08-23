@@ -2,19 +2,29 @@
 # You should always specify a range with the newest
 # and oldest tested versions of CMake. This will ensure
 # you pick up the best policies.
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.25)
 
 # This is your project statement. You should always list languages;
+
+
+# If you set any CMAKE_ variables, that can go here.
+# (But usually don't do this, except maybe for C++ standard)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++ -lm")
+
+
+set(CMAKE_C_COMPILER "gcc-14.2.0")
+set(CMAKE_CXX_COMPILER "/home/fhilprecht/gcc-14.2.0/bin/gcc-11.1")
 # Listing the version is nice here since it sets lots of useful variables
 project(
         HardwareMonitoring
         VERSION 0.1
         LANGUAGES CXX)
 
-# If you set any CMAKE_ variables, that can go here.
-# (But usually don't do this, except maybe for C++ standard)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED YES)
+
+find_package(Threads REQUIRED)
+
 
 # Find packages go here.
 include(cmake/CPM.cmake)
@@ -52,8 +62,11 @@ add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
         DependencyChecker.cpp
         DependencyChecker.h
         IOFile.cpp
+        IOFile.h
         Graph.cpp
         Graph.h
+        GPUFile.cpp
+        GPUFile.h
 )
 
 # Link each target with other targets or add options, etc.
@@ -66,3 +79,4 @@ add_executable(TestHardwareMonitoring test.cpp)
 # Make sure you link your targets with this command. It can also link libraries and
 # even flags, so linking a target that does not exist will not give a configure-time error.
 target_link_libraries(TestHardwareMonitoring HardwareMonitoring)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
