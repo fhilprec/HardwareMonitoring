@@ -66,6 +66,8 @@ add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
         Graph.h
         GPUFile.cpp
         GPUFile.h
+        CPUPerfTwoShot.cpp
+        CPUPerfTwoShot.h
 )
 
 # Link each target with other targets or add options, etc.
@@ -74,8 +76,11 @@ target_link_libraries(HardwareMonitoring fmt::fmt)
 
 # Adding something we can run - Output name matches target name
 add_executable(TestHardwareMonitoring test.cpp)
+add_executable(PerfComp PerfComp.cpp)
 
 # Make sure you link your targets with this command. It can also link libraries and
 # even flags, so linking a target that does not exist will not give a configure-time error.
 target_link_libraries(TestHardwareMonitoring HardwareMonitoring)
+target_link_libraries(PerfComp HardwareMonitoring)
+
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
