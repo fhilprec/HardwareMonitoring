@@ -9,6 +9,7 @@
 #include <sstream>
 #include <iostream>
 #include "Device.hpp"
+#include "fmt/format.h"
 
 class NIC : public Device<NIC> {
 private:
@@ -25,12 +26,14 @@ private:
     std::unordered_map<std::string, uint64_t> readCounters();
 
 public:
-    NIC(const std::string& nicName, int port);
+    NIC(const std::string& nicName, int port, double interval);
     ~NIC() override = default;
 
     std::vector<std::pair<Metric, Measurement>> getData(SamplingMethod sampler) override;
     Measurement fetchMetric(const Metric& metric) override;
-    Measurement calculateMetric(const Metric& metric, const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::vector<std::vector<std::pair<Metric, Measurement>>>>>& requestedMetricsByDeviceBySamplingMethod) override;
+    Measurement calculateMetric(const Metric& metric, const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::unordered_map<
+                                bool, std::vector<std::unordered_map<Metric, Measurement>>>>>&
+                                requestedMetricsByDeviceBySamplingMethod, size_t timeIndexForMetric) override;
 
     static std::string getDeviceName();
     static std::unordered_map<std::string, Metric> getAllDeviceMetricsByName();
