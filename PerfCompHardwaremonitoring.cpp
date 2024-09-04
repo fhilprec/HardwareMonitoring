@@ -39,7 +39,6 @@ int main() {
     monitor.start();
 
     
-    std::cout << "Performing CPU work..." << std::endl;
     for (int i = 0; i < 20; ++i) {
         doCPUWork();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
