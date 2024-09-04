@@ -17,12 +17,8 @@ compute_deviation() {
         echo "${deviation}%"
     fi
 }
-
-# Check if files exist
-if [ ! -f "testOutput/io_stats.csv" ] || [ ! -f "testOutput/IOFileTwoShot.csv" ]; then
-    echo "Error: One or both input files are missing."
-    exit 1
-fi
+./Experiment3_IOComp_Monitor
+./Experiment3_IOComp_RawDevice
 
 # Read the last line from both files
 line1=$(tail -n 1 testOutput/io_stats.csv)
