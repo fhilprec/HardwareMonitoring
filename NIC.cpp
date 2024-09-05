@@ -1,103 +1,73 @@
 #include "NIC.hpp"
+#include <fstream>
+#include <filesystem>
+#include <iostream>
+#include "fmt/format.h"
 
-
-static const std::vector<Metric> METRICS{
-    Metric(POLLING, "port_rcv_data", true),
-    Metric(POLLING, "port_xmit_data", true),
-    Metric(POLLING, "port_rcv_packets", true),
-    Metric(POLLING, "port_xmit_packets", true),
+const std::vector<Metric> NIC::METRICS = {
+    Metric(POLLING, "port_rcv_data", true, true, false),
+    Metric(POLLING, "port_xmit_data", true, true, false),
+    Metric(POLLING, "port_rcv_packets", true, true, false),
+    Metric(POLLING, "port_xmit_packets", true, true, false),
+    Metric(POLLING, "recv_rate", false, false, true),
+    Metric(POLLING, "xmit_rate", false, false, true)
 };
 
-NIC::NIC(const std::string& nicName, int port, double interval)
-    : Device(METRICS), nicName(nicName), port(port), interval(interval) {
-    hwCountersPath = fmt::format("/sys/class/infiniband/{}/ports/{}/hw_counters/", nicName, port);
-    portCountersPath = fmt::format("/sys/class/infiniband/{}/ports/{}/counters/", nicName, port);
-    loadCounters();
-}
+NIC::NIC(const std::string& nic, const std::string& port) 
+    : Device(METRICS), nicName(nic), portNumber(port) {}
 
-void NIC::loadCounters() {
-    for (const auto& entry : std::filesystem::directory_iterator(hwCountersPath)) {
-        if (std::filesystem::is_regular_file(entry.path())) {
-            counters[entry.path().filename().string()] = entry.path();
-            for(const auto& m : METRICS){
-                if(m.name == entry.path().filename().string()){
-                    std::ifstream file(entry.path());
-                    if (file.is_open()) {
-                        uint64_t value;
-                        file >> value;
-                        if(endsWith(entry.path().filename().string(), "_data")) value = value*4;
-                        double d = static_cast<double>(value);
-                        d = d * (1/interval);
-                        value = static_cast<uint64_t>(d);
-                        lastValues.emplace(m.name, value);
-                    }
+void NIC::readNICStats() {
+    const std::string basePath = fmt::format("/sys/class/infiniband/{}/ports/{}/counters/", nicName, portNumber);
+    
+    for (const auto& entry : std::filesystem::directory_iterator(basePath)) {
+        const auto& path = entry.path();
+        if (std::filesystem::is_regular_file(path)) {
+            std::ifstream file(path);
+            if (file.is_open()) {
+                std::string value;
+                if (std::getline(file, value)) {
+                    currentValues[path.filename()] = std::stoull(value);
                 }
             }
         }
     }
-
-    for (const auto& entry : std::filesystem::directory_iterator(portCountersPath)) {
-        if (std::filesystem::is_regular_file(entry.path())) {
-            counters[entry.path().filename()] = entry.path();
-            for(const auto& m : METRICS){
-                if(m.name == entry.path().filename().string()){
-                    std::ifstream file(entry.path());
-                    if (file.is_open()) {
-                        uint64_t value;
-                        file >> value;
-                        if(endsWith(entry.path().filename().string(), "_data")) value = value*4;
-                        double d = static_cast<double>(value);
-                        d = d * (1/interval);
-                        value = static_cast<uint64_t>(d);
-                        lastValues.emplace(m.name, value);
-                    }
-                }
-            }
-        }
-    }
-}
-
-bool NIC::endsWith(const std::string& str, const std::string& suffix) {
-        return str.size() >= suffix.size() && str.compare(str.size()-suffix.size(), suffix.size(), suffix) == 0;
-}
-
-std::unordered_map<std::string, uint64_t> NIC::readCounters() {
-    std::unordered_map<std::string, uint64_t> counterValues;
-    for (const auto& [name, path] : counters) {
-        std::ifstream file(path);
-        if (file.is_open()) {
-            uint64_t value;
-            file >> value;
-            if(endsWith(name, "_data")) value = value*4;
-            double d = static_cast<double>(value);
-            d = d * (1/interval);
-            value = static_cast<uint64_t>(d);
-            counterValues[name] = value;
-        }
-    }
-    return counterValues;
 }
 
 std::vector<std::pair<Metric, Measurement>> NIC::getData(SamplingMethod sampler) {
-    auto result = Device::getData(sampler);
-    return result;
+    if (sampler == POLLING) readNICStats();
+    return Device::getData(sampler);
 }
 
 Measurement NIC::fetchMetric(const Metric& metric) {
-    auto counterValues = readCounters();
-    Measurement tmp = Measurement(std::to_string(counterValues[metric.name]-lastValues[metric.name]));
-    lastValues[metric.name] = counterValues[metric.name];
-    return tmp;
+    auto it = currentValues.find(metric.name);
+    if (it != currentValues.end()) {
+        return Measurement(std::to_string(it->second));
+    }
+    return Measurement("0");
 }
 
-Measurement calculateMetric(const Metric& metric, const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::unordered_map<
-                                bool, std::vector<std::unordered_map<Metric, Measurement>>>>>&
-                                requestedMetricsByDeviceBySamplingMethod, size_t timeIndexForMetric) {
+Measurement NIC::calculateMetric(const Metric& metric,
+                                 const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::unordered_map<bool, std::vector<std::unordered_map<Metric, Measurement>>>>>&
+                                 requestedMetricsByDeviceBySamplingMethod,
+                                 size_t timeIndexForMetric) {
+    if (metric.name == "recv_rate" || metric.name == "xmit_rate") {
+        if (timeIndexForMetric == 0) return Measurement("0");
+
+        auto deviceData = requestedMetricsByDeviceBySamplingMethod.at(getDeviceName()).at(POLLING).at(false);
+        std::string baseMetricName = metric.name == "recv_rate" ? "port_rcv_data" : "port_xmit_data";
+
+        uint64_t prevValue = std::stoull(deviceData.at(timeIndexForMetric - 1).at(getAllDeviceMetricsByName()[baseMetricName]).value);
+        uint64_t currentValue = std::stoull(deviceData.at(timeIndexForMetric).at(getAllDeviceMetricsByName()[baseMetricName]).value);
+
+        // Assuming 1-second interval between polls, calculate bytes per second
+        return Measurement(fmt::format("{}", currentValue - prevValue));
+    }
+
     return Measurement("0");
 }
 
 std::string NIC::getDeviceName() {
-    return fmt::format("NIC");
+    return "NIC";
 }
 
 std::unordered_map<std::string, Metric> NIC::getAllDeviceMetricsByName() {
@@ -109,5 +79,10 @@ std::unordered_map<std::string, Metric> NIC::getAllDeviceMetricsByName() {
 }
 
 std::unordered_map<std::string, std::vector<Metric>> NIC::getNeededMetricsForCalculatedMetrics(const Metric& metric) {
+    if (metric.name == "recv_rate") {
+        return {{getDeviceName(), {getAllDeviceMetricsByName()["port_rcv_data"]}}};
+    } else if (metric.name == "xmit_rate") {
+        return {{getDeviceName(), {getAllDeviceMetricsByName()["port_xmit_data"]}}};
+    }
     return {};
 }
