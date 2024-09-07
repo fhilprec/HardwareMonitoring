@@ -66,6 +66,8 @@ add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
         Graph.h
         GPUFile.cpp
         GPUFile.h
+        NIC.cpp
+        NIC.h
 )
 
 # Link each target with other targets or add options, etc.

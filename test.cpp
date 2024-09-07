@@ -9,6 +9,7 @@
 #include "IOFile.h"
 #include "Monitor.h"
 #include "GPUFile.h"
+#include "NIC.h"
 
 
 // Function to simulate GPU work (vector addition)
@@ -126,6 +127,8 @@ int main() {
     devices.emplace_back((IDevice*)device2);
     auto* gpuDevice = new GPUFile();
     devices.emplace_back((IDevice*)gpuDevice);
+    auto* nic = new NIC();
+    devices.emplace_back((IDevice*)nic);
 
     std::filesystem::path outputDirectory("testOutput");
     auto fullPath = absolute(outputDirectory);
