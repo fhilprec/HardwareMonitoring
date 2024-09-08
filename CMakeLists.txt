@@ -40,42 +40,53 @@ CPMAddPackage(
 # Other common choices are STATIC, SHARED, and MODULE
 # Including header files here helps IDEs but is not required.
 # Output libname matches target name, with the usual extensions on your system
-add_library(HardwareMonitoring Device.cpp Device.hpp Counter.cpp Counter.hpp
-        Output.hpp
-        Output.cpp
-        OutputConfiguration.cpp
-        OutputConfiguration.hpp
-        SamplingMethod.cpp
-        SamplingMethod.h
-        Metric.cpp
-        Metric.h
-        Measurement.cpp
-        Measurement.h
-        CPUPerf.cpp
-        CPUPerf.h
-        Calculator.cpp
-        Calculator.h
-        Monitor.cpp
-        Monitor.h
-        FileManager.cpp
-        FileManager.h
-        DependencyChecker.cpp
-        DependencyChecker.h
-        IOFile.cpp
-        Graph.cpp
-        Graph.h
-        GPUFile.cpp
-        GPUFile.h
-        NIC.cpp
-        NIC.h
+add_library(HardwareMonitoring 
+        Devices/Device.cpp 
+        Devices/Device.hpp 
+        Core/Counter.cpp 
+        Core/Counter.hpp
+        Core/Output.hpp
+        Core/Output.cpp
+        Core/OutputConfiguration.cpp
+        Core/OutputConfiguration.hpp
+        Core/SamplingMethod.cpp
+        Core/SamplingMethod.h
+        Core/Metric.cpp
+        Core/Metric.h
+        Core/Measurement.cpp
+        Core/Measurement.h
+        Devices/CPUPerf.cpp
+        Devices/CPUPerf.h
+        Core/Calculator.cpp
+        Core/Calculator.h
+        Core/Monitor.cpp
+        Core/Monitor.h
+        Core/FileManager.cpp
+        Core/FileManager.h
+        Core/DependencyChecker.cpp
+        Core/DependencyChecker.h
+        Devices/IOFile.cpp
+        Devices/IOFile.h
+        Core/Graph.cpp
+        Core/Graph.h
+        Devices/GPUFile.cpp
+        Devices/GPUFile.h
+        Devices/NIC.cpp
+        Devices/NIC.h
 )
+
+target_include_directories(HardwareMonitoring PUBLIC
+    ${CMAKE_SOURCE_DIR}/Devices
+    ${CMAKE_SOURCE_DIR}/Core
+)
+
 
 # Link each target with other targets or add options, etc.
 target_link_libraries(HardwareMonitoring fmt::fmt)
 
 
 # Adding something we can run - Output name matches target name
-add_executable(TestHardwareMonitoring test.cpp)
+add_executable(TestHardwareMonitoring Experiments/test.cpp)
 
 # Make sure you link your targets with this command. It can also link libraries and
 # even flags, so linking a target that does not exist will not give a configure-time error.
