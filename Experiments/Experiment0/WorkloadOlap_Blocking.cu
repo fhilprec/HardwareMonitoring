@@ -6,12 +6,7 @@
 #include "util.hpp"
 #include "dev_util.cuh"
 
-#include "Device.hpp"
-#include "CPUPerf.h"
-#include "IOFile.h"
-#include "Monitor.h"
-#include "GPUFile.h"
-#include "NIC.h"
+#include "MonitoringInterface.h"
 
 DEFINE_uint32(cuda_device, 0, "Index of CUDA device to use.");
 DEFINE_uint32(scale_factor, 5, "Scale factor == size in GB.");
@@ -22,18 +17,9 @@ DEFINE_string(ssdpath, "/raid/gds/300G.file", "Path to block device or file.");
 
 int main(int argc, char *argv[]){
 
-     std::vector<std::shared_ptr<IDevice>> devices;
 
-    auto* device = new IOFile();
-    devices.emplace_back((IDevice*)device);
-    auto* device2 = new CPUPerf();
-    devices.emplace_back((IDevice*)device2);
-    auto* gpuDevice = new GPUFile();
-    devices.emplace_back((IDevice*)gpuDevice);
-    auto* nic = new NIC();
-    devices.emplace_back((IDevice*)nic);
 
-    monitor.start();
+    start_monitoring();
     
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     checkCudaErrors(cudaSetDevice(FLAGS_cuda_device));
@@ -101,7 +87,7 @@ int main(int argc, char *argv[]){
         StorageManager::get().host_write_bytes(hst_ptr, bytes, FLAGS_store_offset);
     }
 
-    monitor.stop();
+    stop_monitoring();
 
     util::Log::get().info_fmt("Storage writes took %.2f ms", timer.elapsed());
     util::Log::get().info_fmt("Total took %.2f ms", total_timer.elapsed());

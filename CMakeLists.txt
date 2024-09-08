@@ -72,6 +72,7 @@ add_library(HardwareMonitoring
         Devices/TwoShot/CPUPerfTwoShot.h
         Devices/TwoShot/IOFileTwoShot.cpp
         Devices/TwoShot/IOFileTwoShot.h
+        Experiments/Experiment0/MonitoringInterface.cpp
 )
 
 target_include_directories(HardwareMonitoring PUBLIC
