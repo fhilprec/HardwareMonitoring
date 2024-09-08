@@ -55,8 +55,8 @@ add_library(HardwareMonitoring
         Core/Metric.h
         Core/Measurement.cpp
         Core/Measurement.h
-        Devices/CPUPerf.cpp
-        Devices/CPUPerf.h
+        Devices/Polling/CPUPerf.cpp
+        Devices/Polling/CPUPerf.h
         Core/Calculator.cpp
         Core/Calculator.h
         Core/Monitor.cpp
@@ -69,11 +69,16 @@ add_library(HardwareMonitoring
         Devices/IOFile.h
         Core/Graph.cpp
         Core/Graph.h
-        Devices/GPUFile.cpp
-        Devices/GPUFile.h
-        Devices/NIC.cpp
-        Devices/NIC.h
+        Devices/Polling/GPUFile.cpp
+        Devices/Polling/GPUFile.h
+        Devices/Polling/NIC.cpp
+        Devices/Polling/NIC.h
+        Devices/TwoShot/CPUPerfTwoShot.cpp
+        Devices/TwoShot/CPUPerfTwoShot.h
+        Devices/TwoShot/IOFileTwoShot.cpp
+        Devices/TwoShot/IOFileTwoShot.h
 )
+
 
 target_include_directories(HardwareMonitoring PUBLIC
     ${CMAKE_SOURCE_DIR}/Devices
