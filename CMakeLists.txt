@@ -112,6 +112,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
 
 # CUDA-specific part
 add_executable(WorkloadOlap_Blocking Experiments/Experiment0/WorkloadOlap_Blocking.cu)
+add_executable(WorkloadOlap_Pipelined Experiments/Experiment0/WorkloadOlap_Pipelined.cu)
 
 set_target_properties(WorkloadOlap_Blocking PROPERTIES
     CUDA_ARCHITECTURES "60;70;75;80"
@@ -128,6 +129,21 @@ target_link_libraries(WorkloadOlap_Blocking
     cufile
 )
 
+target_link_libraries(WorkloadOlap_Pipelined
+    HardwareMonitoring
+    ${CUDA_LIBRARIES}
+    ${CUDA_DRIVER_LIBRARY}
+    ${CUDA_NVRTC_LIBRARY}
+    ${gflags_LIBRARIES}
+    cuda
+    cudart
+    cufile
+
+)
 if(UNIX)
     target_link_libraries(WorkloadOlap_Blocking -lcudart)
+endif()
+
+if(UNIX)
+    target_link_libraries(WorkloadOlap_Pipelined -lcudart)
 endif()
