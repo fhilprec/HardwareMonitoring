@@ -65,8 +65,8 @@ add_library(HardwareMonitoring
         Core/FileManager.h
         Core/DependencyChecker.cpp
         Core/DependencyChecker.h
-        Devices/IOFile.cpp
-        Devices/IOFile.h
+        Devices/Polling/IOFile.cpp
+        Devices/Polling/IOFile.h
         Core/Graph.cpp
         Core/Graph.h
         Devices/Polling/GPUFile.cpp
@@ -82,7 +82,10 @@ add_library(HardwareMonitoring
 
 target_include_directories(HardwareMonitoring PUBLIC
     ${CMAKE_SOURCE_DIR}/Devices
+    ${CMAKE_SOURCE_DIR}/Devices/Polling
+    ${CMAKE_SOURCE_DIR}/Devices/TwoShot
     ${CMAKE_SOURCE_DIR}/Core
+    ${CMAKE_SOURCE_DIR}/Experiments/Experiment3
 )
 
 
@@ -91,14 +94,18 @@ target_link_libraries(HardwareMonitoring fmt::fmt)
 
 
 # Adding something we can run - Output name matches target name
-add_executable(TestHardwareMonitoring Experiments/Experiment0/WorkloadRunEverything.cpp)
-add_executable(TestHardwareMonitoring Experiments/Experiment3/IOFile_Raw.cpp)
-add_executable(TestHardwareMonitoring Experiments/Experiment3/IOFile_Monitored.cpp)
-add_executable(TestHardwareMonitoring Experiments/Experiment3/Perf_Raw.cpp)
-add_executable(TestHardwareMonitoring Experiments/Experiment3/Perf_Monitored.cpp)
+add_executable(WorkloadRunEverything Experiments/Experiment0/WorkloadRunEverything.cpp)
+add_executable(Experiment3_IOFile_Raw Experiments/Experiment3/IOFile_Raw.cpp)
+add_executable(Experiment3_IOFile_Monitored  Experiments/Experiment3/IOFile_Monitored.cpp)
+add_executable(Experiment3_Perf_Raw  Experiments/Experiment3/Perf_Raw.cpp)
+add_executable(Experiment3_Perf_Monitored  Experiments/Experiment3/Perf_Monitored.cpp)
 
 
 # Make sure you link your targets with this command. It can also link libraries and
 # even flags, so linking a target that does not exist will not give a configure-time error.
-target_link_libraries(TestHardwareMonitoring HardwareMonitoring)
+target_link_libraries(WorkloadRunEverything HardwareMonitoring)
+target_link_libraries(Experiment3_IOFile_Raw HardwareMonitoring)
+target_link_libraries(Experiment3_IOFile_Monitored HardwareMonitoring)
+target_link_libraries(Experiment3_Perf_Raw HardwareMonitoring)
+target_link_libraries(Experiment3_Perf_Monitored HardwareMonitoring)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
