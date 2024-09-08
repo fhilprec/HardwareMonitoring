@@ -86,7 +86,7 @@ target_link_libraries(HardwareMonitoring fmt::fmt)
 
 
 # Adding something we can run - Output name matches target name
-add_executable(TestHardwareMonitoring Experiments/test.cpp)
+add_executable(TestHardwareMonitoring Experiments/Experiment0/WorkloadRunEverything.cpp)
 
 # Make sure you link your targets with this command. It can also link libraries and
 # even flags, so linking a target that does not exist will not give a configure-time error.
