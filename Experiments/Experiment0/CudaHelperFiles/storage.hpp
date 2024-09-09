@@ -198,4 +198,3 @@ private:
     std::string dev_path;
 
 };
-

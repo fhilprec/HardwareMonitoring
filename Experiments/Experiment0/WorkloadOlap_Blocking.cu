@@ -1,4 +1,5 @@
 #include <gflags/gflags.h>
+#include <iostream>
 #include <cstdint>
 #include "helper_cuda.h"
 
@@ -6,7 +7,6 @@
 #include "util.hpp"
 #include "dev_util.cuh"
 
-#include "MonitoringInterface.h"
 
 DEFINE_uint32(cuda_device, 0, "Index of CUDA device to use.");
 DEFINE_uint32(scale_factor, 5, "Scale factor == size in GB.");
@@ -16,15 +16,9 @@ DEFINE_uint32(store_offset, 0, "Starting offset in file or block device.");
 DEFINE_string(ssdpath, "/raid/gds/300G.file", "Path to block device or file.");
 
 int main(int argc, char *argv[]){
-
-
-
-    start_monitoring();
-    
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     checkCudaErrors(cudaSetDevice(FLAGS_cuda_device));
     StorageManager::get().init(FLAGS_ssdpath);
-
 
     { // stack for cuda-memcheck
     uint64_t bytes = FLAGS_scale_factor * uint64_t(1<<30);
@@ -86,9 +80,6 @@ int main(int argc, char *argv[]){
     for (int i = 0; i < FLAGS_per_op_repeat; ++i){
         StorageManager::get().host_write_bytes(hst_ptr, bytes, FLAGS_store_offset);
     }
-
-    stop_monitoring();
-
     util::Log::get().info_fmt("Storage writes took %.2f ms", timer.elapsed());
     util::Log::get().info_fmt("Total took %.2f ms", total_timer.elapsed());
 
