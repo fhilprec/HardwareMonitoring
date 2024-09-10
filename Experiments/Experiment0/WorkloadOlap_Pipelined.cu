@@ -40,7 +40,6 @@ int main(int argc, char *argv[]){
         util::Log::get().info_fmt("hst ptr %p", hst_ptr);
     }
     checkCuFileError(cuFileBufRegister(dev_ptr, bytes, 0));
-    checkCuFileError(cuFileBufRegister(hst_ptr, bytes, 0));
 
     util::Timer timer;
 
@@ -67,7 +66,7 @@ int main(int argc, char *argv[]){
     // clean up
     for (int i = 0; i<THREAD_NUM; ++i) checkCudaErrors(cudaStreamDestroy(streams[i]));
     checkCuFileError(cuFileBufDeregister(dev_ptr));
-    checkCuFileError(cuFileBufDeregister(hst_ptr));
+   
     checkCudaErrors(cudaFreeHost(hst_ptr));
     checkCudaErrors(cudaFree(dev_ptr));
     } // stack for cuda-memcheck
