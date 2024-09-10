@@ -7,6 +7,8 @@
 #include "util.hpp"
 #include "dev_util.cuh"
 
+#include "MonitoringInterface.h"
+
 
 DEFINE_uint32(cuda_device, 0, "Index of CUDA device to use.");
 DEFINE_uint32(scale_factor, 5, "Scale factor == size in GB.");
@@ -39,7 +41,7 @@ int main(int argc, char *argv[]){
 
     util::Timer total_timer;
     util::Timer timer;
-
+    start_monitoring();
     // 1) Read from storage
     for (int i = 0; i < FLAGS_per_op_repeat; ++i){
         util::ThreadPool::parallel_n(8, [&](int tid) {
@@ -83,7 +85,7 @@ int main(int argc, char *argv[]){
     util::Log::get().info_fmt("Storage writes took %.2f ms", timer.elapsed());
     util::Log::get().info_fmt("Total took %.2f ms", total_timer.elapsed());
 
-
+    stop_monitoring();
     // clean up
     checkCuFileError(cuFileBufDeregister(dev_ptr));
     checkCudaErrors(cudaFreeHost(hst_ptr));
