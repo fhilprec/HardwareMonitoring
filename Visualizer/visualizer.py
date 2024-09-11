@@ -3,6 +3,8 @@ import csv
 from datetime import datetime
 import matplotlib.pyplot as plt
 
+#python visualizer.py --cpu "cycles" --gpu "raw_reads_n" --io "rchar" "wchar" --scale "instructions:0.01" "raw_reads_n:1000" "wchar:0.0001" "cycles:0.001"    --output my_diagram.png
+
 def parse_timestamp(timestamp_str):
     # Remove any extra digits beyond microseconds
     timestamp_str = timestamp_str[:26]
