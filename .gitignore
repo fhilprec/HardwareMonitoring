@@ -22,7 +22,10 @@ cmake/CPM_0.40.2.cmake
 cmake_install.cmake
 cpm-package-lock.cmake
 testOutput/
-
+Visualizer/*.csv
+Visualizer/*.png
+Pipfile
+*.odp#
 
 # Precompiled Headers
 *.gch
