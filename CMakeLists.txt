@@ -9,13 +9,14 @@ cmake_minimum_required(VERSION 3.25)
 
 # If you set any CMAKE_ variables, that can go here.
 # (But usually don't do this, except maybe for C++ standard)
+
+set(CMAKE_C_COMPILER "/home/astankoski/gcc/bin/gcc-11.1")
+set(CMAKE_CXX_COMPILER "/home/astankoski/gcc/bin/g++-11.1")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++ -lm")
 
 
-set(CMAKE_C_COMPILER "gcc-14.2.0")
-set(CMAKE_CXX_COMPILER "/home/fhilprecht/gcc-14.2.0/bin/gcc-11.1")
 # Listing the version is nice here since it sets lots of useful variables
 project(
         HardwareMonitoring
@@ -74,8 +75,13 @@ target_link_libraries(HardwareMonitoring fmt::fmt)
 
 # Adding something we can run - Output name matches target name
 add_executable(TestHardwareMonitoring test.cpp)
+add_executable(TestHardwareMonitoringLongTime long_monitoring.cpp)
+add_executable(TestHardwareMonitoringIntenseCPU intense_cpu.cpp)
 
 # Make sure you link your targets with this command. It can also link libraries and
 # even flags, so linking a target that does not exist will not give a configure-time error.
 target_link_libraries(TestHardwareMonitoring HardwareMonitoring)
+target_link_libraries(TestHardwareMonitoringLongTime HardwareMonitoring)
+target_link_libraries(TestHardwareMonitoringIntenseCPU HardwareMonitoring)
+
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")

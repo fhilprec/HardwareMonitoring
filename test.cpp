@@ -63,7 +63,7 @@ void doSimulatedGPUWork(int numElements)
 
 
 // Function to perform some CPU-intensive work
-void doCPUWork() {
+void doCPUWorkFlops() {
     volatile int sum = 0;
     for (int i = 0; i < 1000; ++i) {
         sum += i;
@@ -121,11 +121,11 @@ int main() {
     std::vector<std::shared_ptr<IDevice>> devices;
 
     auto* device = new IOFile();
-    devices.emplace_back((IDevice*)device);
+    devices.emplace_back(reinterpret_cast<IDevice*>(device));
     auto* device2 = new CPUPerf();
-    devices.emplace_back((IDevice*)device2);
+    devices.emplace_back(reinterpret_cast<IDevice*>(device2));
     auto* gpuDevice = new GPUFile();
-    devices.emplace_back((IDevice*)gpuDevice);
+    devices.emplace_back(reinterpret_cast<IDevice*>(gpuDevice));
 
     std::filesystem::path outputDirectory("testOutput");
     auto fullPath = absolute(outputDirectory);
@@ -150,7 +150,7 @@ int main() {
 
     std::cout << "Performing CPU work..." << std::endl;
     for (int i = 0; i < 5; ++i) {
-        doCPUWork();
+        doCPUWorkFlops();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
