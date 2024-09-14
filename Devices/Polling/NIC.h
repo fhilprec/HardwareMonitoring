@@ -9,10 +9,13 @@ class NIC : public Device<NIC>
 private:
     std::unordered_map<std::string, std::filesystem::path> counters;
     std::unordered_map<std::string, uint64_t> currentValues;
+    std::string hwCountersPath;
+    std::string portCountersPath;
     void readNICStats();
+    void initCounters();
 
 public:
-    NIC();
+    NIC(const std::string&, const int port);
     ~NIC() override = default;
 
     std::vector<std::pair<Metric, Measurement>> getData(SamplingMethod sampler) override;

@@ -11,21 +11,20 @@ static const std::vector<Metric> METRICS{
     Metric(POLLING, "port_xmit_packets", true)
 };
 
-NIC::NIC() : Device(METRICS) {
-    std::string hwCountersPath = "/sys/class/infiniband/mlx5_0/ports/1/hw_counters/";
-    std::string portCountersPath = "/sys/class/infiniband/mlx5_0/ports/1/counters/";
+NIC::NIC(const std::string& deviceName = "mlx5_0", const int portNumber = 1) : Device(METRICS) {
+    hwCountersPath = fmt::format("/sys/class/infiniband/{}/ports/{}/hw_counters/", deviceName, portNumber);
+    portCountersPath = fmt::format("/sys/class/infiniband/{}/ports/{}/counters/", deviceName, portNumber);
+    initCounters();
+}
 
-    for (const auto& entry : std::filesystem::directory_iterator(hwCountersPath)) {
-        if (std::filesystem::is_regular_file(entry.path())) {
-            counters[entry.path().filename().string()] = entry.path();
+void NIC::initCounters() {
+    for (const auto& path : {hwCountersPath, portCountersPath}) {
+            for (const auto& entry : std::filesystem::directory_iterator(path)) {
+                if (std::filesystem::is_regular_file(entry.path())) {
+                    counters[entry.path().filename().string()] = entry.path();
+                }
+            }
         }
-    }
-
-    for (const auto& entry : std::filesystem::directory_iterator(portCountersPath)) {
-        if (std::filesystem::is_regular_file(entry.path())) {
-            counters[entry.path().filename().string()] = entry.path();
-        }
-    }
 }
 
 void NIC::readNICStats() {
