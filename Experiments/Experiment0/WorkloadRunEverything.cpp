@@ -127,7 +127,7 @@ int main() {
     devices.emplace_back((IDevice*)device2);
     auto* gpuDevice = new GPUFile();
     devices.emplace_back((IDevice*)gpuDevice);
-    auto* nic = new NIC();
+    auto* nic = new NIC("mlx5_0", 1);
     devices.emplace_back((IDevice*)nic);
 
     std::filesystem::path outputDirectory("testOutput");
