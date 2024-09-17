@@ -60,6 +60,7 @@ def main():
     parser = argparse.ArgumentParser(description="Generate performance diagram from CSV files.")
     parser.add_argument('--cpu', nargs='*', help='Columns to plot from CPUPerf.csv')
     parser.add_argument('--gpu', nargs='*', help='Columns to plot from GPUFile.csv')
+    parser.add_argument('--gpu_comp', nargs='*', help='Columns to plot from GPUCOMP.csv')
     parser.add_argument('--io', nargs='*', help='Columns to plot from IOFile.csv')
     parser.add_argument('--output', default='performance_diagram.png', help='Output file name')
     parser.add_argument('--scale', nargs='*', help='Scale factors for columns (format: column:factor)')
@@ -81,6 +82,12 @@ def main():
         if not all_timestamps:
             all_timestamps = gpu_timestamps
         all_data.update(gpu_data)
+    
+    if args.gpu_comp:
+        gpu_comp_timestamps, gpu_comp_data = read_csv_data('GPUComputation.csv', args.gpu_comp, scale_factors)
+        if not all_timestamps:
+            all_timestamps = gpu_comp_timestamps
+        all_data.update(gpu_comp_data)
     
     if args.io:
         io_timestamps, io_data = read_csv_data('IOFile.csv', args.io, scale_factors)
