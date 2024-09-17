@@ -8,7 +8,8 @@
 #include "CPUPerf.h"
 #include "IOFile.h"
 #include "GPUFile.h"
-#include "NIC.h"
+// #include "NIC.h"
+#include "GPUComputation.h"
 
 static std::unique_ptr<Monitor> g_monitor = nullptr;
 
@@ -23,14 +24,16 @@ void start_monitoring() {
     devices.emplace_back((IDevice*)device2);
     auto* gpuDevice = new GPUFile();
     devices.emplace_back((IDevice*)gpuDevice);
-    auto* nic = new NIC("mlx5_0", 1);
-    devices.emplace_back((IDevice*)nic);
+    // auto* nic = new NIC("mlx5_0", 1);
+    // devices.emplace_back((IDevice*)nic);
+    auto* gpucomp = new GPUComputation();
+    devices.emplace_back((IDevice*)gpucomp);
         std::filesystem::path outputDirectory("testOutput");
         auto fullPath = std::filesystem::absolute(outputDirectory);
 
         MonitorConfig config{
             devices,
-            std::chrono::milliseconds(500),
+            std::chrono::milliseconds(5),
             fullPath,
             fullPath
         };

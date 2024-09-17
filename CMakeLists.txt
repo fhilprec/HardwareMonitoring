@@ -68,6 +68,8 @@ add_library(HardwareMonitoring
         Devices/Polling/GPUFile.h
         Devices/Polling/NIC.cpp
         Devices/Polling/NIC.h
+        Devices/Polling/GPUComputation.cpp
+        Devices/Polling/GPUComputation.h
         Devices/TwoShot/CPUPerfTwoShot.cpp
         Devices/TwoShot/CPUPerfTwoShot.h
         Devices/TwoShot/IOFileTwoShot.cpp
