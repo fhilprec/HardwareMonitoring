@@ -33,7 +33,7 @@ void start_monitoring() {
 
         MonitorConfig config{
             devices,
-            std::chrono::milliseconds(5),
+            std::chrono::milliseconds(50),
             fullPath,
             fullPath
         };
