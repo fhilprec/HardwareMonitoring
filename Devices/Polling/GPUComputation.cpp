@@ -28,7 +28,7 @@ GPUComputation::~GPUComputation() {
 
 void GPUComputation::readGPUStats() {
     nvmlDevice_t device;
-    nvmlReturn_t result = nvmlDeviceGetHandleByIndex(0, &device);  // Get handle for the first GPU
+    nvmlReturn_t result = nvmlDeviceGetHandleByIndex(1, &device);  // Get handle for the first GPU
     if (result != NVML_SUCCESS) {
         throw std::runtime_error(fmt::format("Failed to get device handle: {}", nvmlErrorString(result)));
     }
