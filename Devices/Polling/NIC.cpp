@@ -73,4 +73,3 @@ std::unordered_map<std::string, Metric>
 NIC::getAllDeviceMetricsByName();
 std::unordered_map<std::string, std::vector<Metric>> 
 NIC::getNeededMetricsForCalculatedMetrics(const Metric& metric);
-
