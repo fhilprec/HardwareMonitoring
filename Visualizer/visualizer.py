@@ -13,9 +13,12 @@ def parse_timestamp(timestamp_str):
 def read_csv_data(file_path, columns, scale_factors):
     data = {col: [] for col in columns}
     timestamps = []
+
     
+
     with open(file_path, 'r') as csvfile:
         reader = csv.DictReader(csvfile, delimiter=';')
+        
         for row in reader:
             timestamp = parse_timestamp(row['Time of Polling'])
             timestamps.append(timestamp)
@@ -33,15 +36,24 @@ def read_csv_data(file_path, columns, scale_factors):
 def plot_data(timestamps, data_dict, output_file):
     plt.figure(figsize=(12, 6))
     
+    i = 0
+    datalabels = ['CPU', 'GPU IO Reads', 'GPU Utilization', 'SSD Reads', 'SSD Writes']
     for col, values in data_dict.items():
-        plt.plot(timestamps, values, label=col)
+        plt.plot(timestamps, values, label=datalabels[i])
+        i = i + 1
     
     plt.xlabel('Time')
-    plt.ylabel('Operations (scaled)')
-    plt.title('Performance Metrics Over Time')
-    plt.legend()
+    plt.ylabel('Utilization')
+    plt.title('Blocking Workload')
+    plt.legend(loc='upper right', fontsize='large')
     plt.xticks(rotation=45)
     plt.tight_layout()
+
+    # Remove x-axis ticks and labels
+    plt.xticks([])
+    
+    # Remove y-axis ticks and labels
+    plt.yticks([])
     
     plt.savefig(output_file)
     print(f"Diagram saved as {output_file}")
