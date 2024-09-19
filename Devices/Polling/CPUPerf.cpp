@@ -15,7 +15,12 @@
 
 static const std::vector METRICS{
     Metric(POLLING, "cycles", true),
-    Metric(POLLING, "L1-misses", true)
+    Metric(POLLING, "kcycles", true),
+    Metric(POLLING, "instructions", true),
+    Metric(POLLING, "L1-misses", true),
+    Metric(POLLING, "LLC-misses", true),
+    Metric(POLLING, "branch-missese", true),
+    Metric(POLLING, "task-clock", true)
 };
 
 CPUPerf::CPUPerf(const std::vector<Metric>& metricsToCount): Device(metricsToCount)
