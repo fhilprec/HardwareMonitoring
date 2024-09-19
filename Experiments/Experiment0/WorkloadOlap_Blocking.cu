@@ -131,7 +131,7 @@ int main(int argc, char *argv[]){
     util::Log::get().info_fmt("Storage reads took %.2f ms", timer.elapsed());
     timer.reset();
     int n = 5;
-
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     // 2) Waste some time on GPU
     for (int i = 0; i < n; ++i){
         // util::waiting_kernel<<<1,1>>>(FLAGS_kernel_ms * 0);
@@ -156,7 +156,7 @@ int main(int argc, char *argv[]){
         util::ThreadPool::parallel_n(8, [&](int tid) {
             util::Timer::sleep_ms(200);
             int sum = 0;
-            for(int i  = 0; i < 10000000; i++){
+            for(int i  = 0; i < 100000000; i++){
                 sum += i * i * i * i;
             }
         });
