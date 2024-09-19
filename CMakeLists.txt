@@ -12,7 +12,7 @@ set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_STANDARD_REQUIRED YES)
 set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-11.8")
 set(CMAKE_C_COMPILER "gcc-14.2.0")
-set(CMAKE_CXX_COMPILER "/home/fhilprecht/gcc-14.2.0/bin/gcc-11.1")
+set(CMAKE_CXX_COMPILER "~/gcc-14.2.0/bin/gcc-11.1")
 
 project(
         HardwareMonitoring
