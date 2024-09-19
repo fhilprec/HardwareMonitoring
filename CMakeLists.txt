@@ -12,7 +12,7 @@ set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_STANDARD_REQUIRED YES)
 set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-11.8")
 set(CMAKE_C_COMPILER "gcc-14.2.0")
-set(CMAKE_CXX_COMPILER "/home/fhilprecht/gcc-14.2.0/bin/gcc-11.1")
+set(CMAKE_CXX_COMPILER "/home/jheidrich/gcc-14.2.0/bin/gcc-11.1")
 
 project(
         HardwareMonitoring
@@ -26,6 +26,13 @@ find_package(gflags REQUIRED)
 # Find CUDA-specific libraries
 find_library(CUDA_DRIVER_LIBRARY cuda)
 find_library(CUDA_NVRTC_LIBRARY nvrtc)
+
+# NVML specific configuration
+set(NVML_INCLUDE_DIR /usr/include)
+set(NVML_LIBRARY /usr/lib/x86_64-linux-gnu/libnvidia-ml.so)
+
+# Include directories for NVML
+include_directories(${NVML_INCLUDE_DIR})
 
 include(cmake/CPM.cmake)
 CPMAddPackage(
@@ -86,6 +93,7 @@ target_include_directories(HardwareMonitoring PUBLIC
     ${CMAKE_SOURCE_DIR}/Experiments/Experiment0/CudaHelperFiles
     ${CUDA_INCLUDE_DIRS}
     ${gflags_INCLUDE_DIRS}
+    ${NVML_INCLUDE_DIR} # Include NVML headers
 )
 
 target_link_libraries(HardwareMonitoring 
@@ -96,6 +104,7 @@ target_link_libraries(HardwareMonitoring
     ${gflags_LIBRARIES}
     cuda
     cudart
+    ${NVML_LIBRARY} # Link NVML library
 )
 
 add_executable(WorkloadRunEverything Experiments/Experiment0/WorkloadRunEverything.cpp)

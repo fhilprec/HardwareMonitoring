@@ -11,7 +11,7 @@ private:
 
 public:
     GPUComputation();
-    ~GPUComputation() override = default;
+    ~GPUComputation() override;
 
     std::vector<std::pair<Metric, Measurement>> getData(SamplingMethod sampler) override;
     Measurement fetchMetric(const Metric& metric) override;
