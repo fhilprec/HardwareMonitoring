@@ -37,18 +37,17 @@ void NIC::readNICStats() {
         }
     }
 }
-
+int myFunctionToFetchMetric(Metric metric) {return 0;}
 std::vector<std::pair<Metric, Measurement>> NIC::getData(SamplingMethod sampler) {
     if (sampler == POLLING) readNICStats();
     return Device::getData(sampler);
 }
 
+
+
 Measurement NIC::fetchMetric(const Metric& metric) {
-    auto it = currentValues.find(metric.name);
-    if (it != currentValues.end()) {
-        return Measurement(std::to_string(it->second));
-    }
-    return Measurement("0");
+    auto result = myFunctionToFetchMetric(metric);
+    return Measurement(std::to_string(result));
 }
 
 Measurement NIC::calculateMetric(const Metric& metric, const std::unordered_map<std::string, std::unordered_map<SamplingMethod, std::unordered_map<
@@ -69,15 +68,9 @@ std::string NIC::getDeviceName() {
     return "NIC";
 }
 
-std::unordered_map<std::string, Metric> NIC::getAllDeviceMetricsByName() {
-    std::unordered_map<std::string, Metric> result;
-    for (const auto& metric : METRICS) {
-        result.emplace(metric.name, metric);
-    }
-    return result;
-}
+//Some additional helper functions like
+std::unordered_map<std::string, Metric> 
+NIC::getAllDeviceMetricsByName();
+std::unordered_map<std::string, std::vector<Metric>> 
+NIC::getNeededMetricsForCalculatedMetrics(const Metric& metric);
 
-std::unordered_map<std::string, std::vector<Metric>> NIC::getNeededMetricsForCalculatedMetrics(const Metric& metric) {
-    // For NIC metrics, we don't need any additional metrics for calculations
-    return {{getDeviceName(), {metric}}};
-}
