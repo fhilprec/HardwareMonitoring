@@ -42,9 +42,9 @@ def plot_data(timestamps, data_dict, output_file):
         plt.plot(timestamps, values, label=datalabels[i])
         i = i + 1
     
-    plt.xlabel('Time')
+    # plt.xlabel('Time')
     plt.ylabel('Utilization')
-    plt.title('Blocking Workload')
+    plt.title('Pipelined Workload')
     plt.legend(loc='upper right', fontsize='large')
     plt.xticks(rotation=45)
     plt.tight_layout()
