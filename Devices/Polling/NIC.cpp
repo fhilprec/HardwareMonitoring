@@ -81,3 +81,17 @@ std::unordered_map<std::string, std::vector<Metric>> NIC::getNeededMetricsForCal
     // For NIC metrics, we don't need any additional metrics for calculations
     return {{getDeviceName(), {metric}}};
 }
+
+
+
+std::vector<std::shared_ptr<IDevice>> devices = {
+    std::make_shared<CPUPerf>(),
+    std::make_shared<GPUFile>(),
+    std::make_shared<NIC>("mlx5_0", 1) //NIC and Port
+};
+Monitor monitor(devices);
+monitor.start();
+
+result = computeFibonacci(100);
+
+monitor.stop();
