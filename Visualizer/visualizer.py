@@ -33,31 +33,46 @@ def read_csv_data(file_path, columns, scale_factors):
     
     return timestamps, data
 
-def plot_data(timestamps, data_dict, output_file):
+
+def plot_data(timestamps, data_dict, output_file, label_step=50):
     plt.figure(figsize=(12, 6))
-    
+
+    # Calculate time elapsed in seconds from the first timestamp
+    timestamps_elapsed = [(timestamp - timestamps[0]).total_seconds() for timestamp in timestamps]
+
+    # Convert time elapsed to strings (seconds with two decimal precision)
+    timestamps_formatted = [f'{elapsed:.2f}' for elapsed in timestamps_elapsed]
+
+    # Plot all the data points
     i = 0
-    datalabels = ['CPU', 'GPU IO Reads', 'GPU Utilization', 'SSD Reads', 'SSD Writes']
+    datalabels = ['CPU', 'GPU IO Reads', 'GPU Utilization', 'SSD Writes']
     for col, values in data_dict.items():
-        plt.plot(timestamps, values, label=datalabels[i])
-        i = i + 1
+        plt.plot(timestamps_formatted, values, label=datalabels[i])
+        i += 1
+
+    # Reduce the number of x-axis labels to every `label_step`th timestamp
+    xticks_positions = range(0, len(timestamps_formatted), label_step)
     
-    # plt.xlabel('Time')
+    # Display only the seconds on x-axis labels
+    xticks_labels = [f'{timestamps_elapsed[pos]:.0f}' for pos in xticks_positions]  # Show integers for seconds
+    
+    plt.xticks(xticks_positions, xticks_labels, fontsize='large')
+
     plt.ylabel('Utilization')
-    plt.title('Pipelined Workload')
-    plt.legend(loc='upper right', fontsize='large')
-    plt.xticks(rotation=45)
+    plt.legend(fontsize='large', ncol=4, bbox_to_anchor=(0, 1.01, 1, 0), loc='lower left', mode="expand", borderaxespad=0.)
     plt.tight_layout()
 
-    # Remove x-axis ticks and labels
-    plt.xticks([])
-    
     # Remove y-axis ticks and labels
     plt.yticks([])
-    
-    plt.savefig(output_file)
+
+    # Save the figure
+    plt.savefig(output_file + '.png')
     print(f"Diagram saved as {output_file}")
 
+
+
+
+    
 def parse_scale_factors(scale_args):
     scale_factors = {}
     for scale_arg in scale_args:
@@ -111,7 +126,7 @@ def main():
         print("No data to plot. Please specify at least one column from one file.")
         return
     
-    plot_data(all_timestamps, all_data, args.output)
+    plot_data(all_timestamps, all_data, args.output )
 
 if __name__ == "__main__":
     main()
