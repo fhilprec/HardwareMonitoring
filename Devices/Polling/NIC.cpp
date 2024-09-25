@@ -83,19 +83,3 @@ std::unordered_map<std::string, std::vector<Metric>> NIC::getNeededMetricsForCal
 }
 
 
-static const std::vector METRICS{
-    Metric(POLLING, "cycles", true),
-    Metric(POLLING, "L1-misses", true)
-};
-
-Measurement NIC::fetchMetric(const Metric& metric) {
-    auto result = myFunctionToFetchMetric(metric);
-    return Measurement(result);
-}
-
-//Some additional helper functions like
-std::unordered_map<std::string, Metric>
-NIC::getAllDeviceMetricsByName();
-
-std::unordered_map<std::string, std::vector<Metric>>
-NIC::getNeededMetricsForCalculatedMetrics(const Metric& metric);
