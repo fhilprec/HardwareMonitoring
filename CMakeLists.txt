@@ -10,8 +10,6 @@ cmake_minimum_required(VERSION 3.25)
 # If you set any CMAKE_ variables, that can go here.
 # (But usually don't do this, except maybe for C++ standard)
 
-set(CMAKE_C_COMPILER "/home/astankoski/gcc/bin/gcc-11.1")
-set(CMAKE_CXX_COMPILER "/home/astankoski/gcc/bin/g++-11.1")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++ -lm")

@@ -47,13 +47,26 @@ void doCPUWorkFlops(unsigned int numIterations)
     }
 }
 
+static int pin_thread(int core_id, int pid = 0){
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(core_id, &cpuset);
+
+    return sched_setaffinity(pid, sizeof(cpu_set_t), &cpuset);
+}
+
+
 void DoWork(unsigned int numIterations, unsigned int numThreads)
 {
     std::vector<std::jthread> threads;
     threads.reserve(numThreads);
     for (int i = 0; i < numThreads; i++)
     {
-        threads.emplace_back(&doCPUWorkFlops,numIterations);
+        threads.emplace_back([=]
+        {
+            pin_thread(i%16);
+            doCPUWorkFlops(1);
+        });
     }
 
     for (auto& thread : threads)
@@ -79,7 +92,7 @@ int main(int argc, char* argv[])
         return 0;
     }
     //config
-    std::string outputFolder = "test_intense_cpu_1/temp_output";
+    std::string outputFolder = "test_intense_cpu_3/temp_output";
 
     //test
     std::vector<std::shared_ptr<IDevice>> devices;
@@ -92,7 +105,7 @@ int main(int argc, char* argv[])
 
     if(useMonitoring)
     {
-        Monitor monitor({devices, std::chrono::milliseconds(500), outputDirectory, outputDirectory});
+        Monitor monitor({devices, std::chrono::milliseconds(100), outputDirectory, outputDirectory});
 
         monitor.start();
         DoWork(numIterations, numThreads);

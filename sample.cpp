@@ -1,6 +1,10 @@
+#include <iostream>
+#include <fstream>
 #include <vector>
-
-#include "CPUPerf.h"
+#include <random>
+#include <chrono>
+#include <thread>
+#include "Device.hpp"
 #include "Monitor.h"
 
 void doWork(){}
@@ -8,7 +12,8 @@ void doWork(){}
 int main() {
     std::vector<std::shared_ptr<IDevice>> devices;
 
-    devices.emplace_back(new CPUPerf());
+    auto* device = new CPUPerf();
+    devices.emplace_back(device);
 
     std::filesystem::path outputDirectory("output");
 

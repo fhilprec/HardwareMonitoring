@@ -24,24 +24,12 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0024c9b-f7ba-4460-9ec3-b2c26989761f" name="Changes" comment="make calculated metric iterable">
-      <change afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/webServers.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/intense_cpu.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/intense_io.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/long_monitoring.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/run_intense_cpu_paramiterized_test.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/run_intense_cpu_test.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/run_long_test.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/show_intense_cpu_parameterized_plot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/HardwareMonitoring.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/HardwareMonitoring.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/editor.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="f0024c9b-f7ba-4460-9ec3-b2c26989761f" name="Changes" comment="commit progress">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Device.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Device.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/intense_cpu.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/intense_cpu.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_intense_cpu_paramiterized_test.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_intense_cpu_paramiterized_test.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/show_intense_cpu_parameterized_plot.py" beforeDir="false" afterPath="$PROJECT_DIR$/show_intense_cpu_parameterized_plot.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/test.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -123,25 +111,29 @@
     &quot;database.data.extractors.current.export.id&quot;: &quot;Semicolon-separated_id&quot;,
     &quot;database.data.extractors.current.id&quot;: &quot;Semicolon-separated_id&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/aleks-tu/Documents/tu_darmstadt/Monitoring&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/aleks-tu/Documents/tu_darmstadt/Monitoring/cmake-build-debug/test_intense_cpu&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.idesettings.debugger.python&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
+  <component name="PyDebuggerOptionsProvider">
+    <option name="myPyQtBackend" value="pyqt6" />
+  </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/cmake-build-debug/test_intense_cpu" />
       <recent name="$PROJECT_DIR$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/cmake-build-debug" />
     </key>
   </component>
-  <component name="RunManager" selected="CMake Application.TestHardwareMonitoringIntenseCPU">
+  <component name="RunManager" selected="Python.show_intense_cpu_parameterized_plot">
     <configuration name="HardwareMonitoring" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="HardwareMonitoring" TARGET_NAME="HardwareMonitoring" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -191,9 +183,9 @@
     </configuration>
     <list>
       <item itemvalue="CMake Application.HardwareMonitoring" />
+      <item itemvalue="CMake Application.TestHardwareMonitoring" />
       <item itemvalue="CMake Application.TestHardwareMonitoringIntenseCPU" />
       <item itemvalue="CMake Application.TestHardwareMonitoringLongTime" />
-      <item itemvalue="CMake Application.TestHardwareMonitoring" />
       <item itemvalue="CMake Application.fmt" />
       <item itemvalue="Python.show_intense_cpu_parameterized_plot" />
     </list>
@@ -237,7 +229,24 @@
       <workItem from="1726044806260" duration="8765000" />
       <workItem from="1726068752262" duration="34000" />
       <workItem from="1726081483368" duration="536000" />
-      <workItem from="1726115617884" duration="2092000" />
+      <workItem from="1726115617884" duration="4258000" />
+      <workItem from="1726768482971" duration="1549000" />
+      <workItem from="1726774347388" duration="3000" />
+      <workItem from="1726774520173" duration="1310000" />
+      <workItem from="1727012770967" duration="4337000" />
+      <workItem from="1727075257632" duration="1419000" />
+      <workItem from="1727089674550" duration="3497000" />
+      <workItem from="1727100751431" duration="30000" />
+      <workItem from="1727111292081" duration="2247000" />
+      <workItem from="1727158406704" duration="4044000" />
+      <workItem from="1727165809625" duration="27000" />
+      <workItem from="1727168581920" duration="1000" />
+      <workItem from="1727169034076" duration="657000" />
+      <workItem from="1727169786845" duration="33000" />
+      <workItem from="1727169846422" duration="131000" />
+      <workItem from="1727170004268" duration="65000" />
+      <workItem from="1727170103536" duration="2263000" />
+      <workItem from="1727256794187" duration="6000" />
     </task>
     <task id="LOCAL-00001" summary="make calculated metric iterable">
       <option name="closed" value="true" />
@@ -247,7 +256,15 @@
       <option name="project" value="LOCAL" />
       <updated>1724395701077</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="commit progress">
+      <option name="closed" value="true" />
+      <created>1726149333593</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1726149333593</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -260,7 +277,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="make calculated metric iterable" />
-    <option name="LAST_COMMIT_MESSAGE" value="make calculated metric iterable" />
+    <MESSAGE value="commit progress" />
+    <option name="LAST_COMMIT_MESSAGE" value="commit progress" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
