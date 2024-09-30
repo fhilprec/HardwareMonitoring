@@ -12,7 +12,6 @@ set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_STANDARD_REQUIRED YES)
 set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-11.8")
 set(CMAKE_C_COMPILER "gcc-14.2.0")
-set(CMAKE_CXX_COMPILER "/home/fhilprecht/gcc-14.2.0/bin/gcc-11.1")
 
 project(
         HardwareMonitoring
@@ -99,26 +98,19 @@ target_link_libraries(HardwareMonitoring
 )
 
 # Adding something we can run - Output name matches target name
-add_executable(TestHardwareMonitoring test.cpp)
-add_executable(TestHardwareMonitoringLongTime long_monitoring.cpp)
-add_executable(TestHardwareMonitoringIntenseCPU intense_cpu.cpp)
 add_executable(WorkloadRunEverything Experiments/Experiment0/WorkloadRunEverything.cpp)
+add_executable(Experiment2_CPU_multithreaded_flops Experiments/Experiment2/intense_cpu.cpp)
 add_executable(Experiment3_IOFile_Raw Experiments/Experiment3/IOFile_Raw.cpp)
 add_executable(Experiment3_IOFile_Monitored  Experiments/Experiment3/IOFile_Monitored.cpp)
 add_executable(Experiment3_Perf_Raw  Experiments/Experiment3/Perf_Raw.cpp)
 add_executable(Experiment3_Perf_Monitored  Experiments/Experiment3/Perf_Monitored.cpp)
 
 target_link_libraries(WorkloadRunEverything HardwareMonitoring)
+target_link_libraries(Experiment2_CPU_multithreaded_flops HardwareMonitoring)
 target_link_libraries(Experiment3_IOFile_Raw HardwareMonitoring)
 target_link_libraries(Experiment3_IOFile_Monitored HardwareMonitoring)
 target_link_libraries(Experiment3_Perf_Raw HardwareMonitoring)
 target_link_libraries(Experiment3_Perf_Monitored HardwareMonitoring)
-
-# Make sure you link your targets with this command. It can also link libraries and
-# even flags, so linking a target that does not exist will not give a configure-time error.
-target_link_libraries(TestHardwareMonitoring HardwareMonitoring)
-target_link_libraries(TestHardwareMonitoringLongTime HardwareMonitoring)
-target_link_libraries(TestHardwareMonitoringIntenseCPU HardwareMonitoring)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
 

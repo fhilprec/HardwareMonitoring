@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Read the CSV data into a pandas DataFrame
-df = pd.read_csv("final_cpu/runtimes.csv", sep=";")
+df = pd.read_csv("runtimes.csv", sep=";")
 
 # Convert 'time' from string to float (replace comma with dot)
 #df['time'] = df['time'].str.replace(",", ".").astype(float)
