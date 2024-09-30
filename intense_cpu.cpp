@@ -65,7 +65,7 @@ void DoWork(unsigned int numIterations, unsigned int numThreads)
         threads.emplace_back([=]
         {
             pin_thread(i%16);
-            doCPUWorkFlops(1);
+            doCPUWorkFlops(numIterations);
         });
     }
 
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
         return 0;
     }
     //config
-    std::string outputFolder = "test_intense_cpu_3/temp_output";
+    std::string outputFolder = "test_intense_cpu/temp_output";
 
     //test
     std::vector<std::shared_ptr<IDevice>> devices;
@@ -105,14 +105,24 @@ int main(int argc, char* argv[])
 
     if(useMonitoring)
     {
-        Monitor monitor({devices, std::chrono::milliseconds(100), outputDirectory, outputDirectory});
+        Monitor monitor({devices, std::chrono::milliseconds(5), outputDirectory, outputDirectory});
 
+        auto start = std::chrono::system_clock::now();
         monitor.start();
         DoWork(numIterations, numThreads);
+        auto end = std::chrono::system_clock::now();
+
+        auto total_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         monitor.stop();
+        std::cout << total_time.count() << std::endl;
     }else
     {
+        auto start = std::chrono::system_clock::now();
         DoWork(numIterations, numThreads);
+        auto end = std::chrono::system_clock::now();
+
+        auto total_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        std::cout << total_time.count() << std::endl;
     }
 
     return 0;

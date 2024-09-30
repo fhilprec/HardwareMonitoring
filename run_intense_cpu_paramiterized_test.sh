@@ -1,9 +1,9 @@
 #!/bin/bash
 
-min_threads=1
+min_threads=7
 max_threads=16+1
 max_iterations=(10)
-num_runtimes=3
+num_runtimes=20
 
 rm -rf test_intense_cpu
 mkdir test_intense_cpu
@@ -23,19 +23,19 @@ for ((threads=min_threads;threads<=max_threads;threads+=1));
     if [ $threads -ge 15 ]
     then
       echo -n "no;${iterations};${threads};${run};">>test_intense_cpu/runtimes.csv
-          { time numactl -l ./TestHardwareMonitoringIntenseCPU n "$iterations" "$threads"; } 2>> test_intense_cpu/runtimes.csv
+          {  numactl -l ./TestHardwareMonitoringIntenseCPU n "$iterations" "$threads"; } >> test_intense_cpu/runtimes.csv
 
               rm -rf test_intense_cpu/temp_output/*
           echo -n "yes;${iterations};${threads};${run};">>test_intense_cpu/runtimes.csv
-          { time numactl -l ./TestHardwareMonitoringIntenseCPU y "$iterations" "$threads"; } 2>> test_intense_cpu/runtimes.csv
+          {  numactl -l ./TestHardwareMonitoringIntenseCPU y "$iterations" "$threads"; } >> test_intense_cpu/runtimes.csv
         rm -rf test_intense_cpu/temp_output/*
     else
     echo -n "no;${iterations};${threads};${run};">>test_intense_cpu/runtimes.csv
-    { time numactl -C "${threads}" -l ./TestHardwareMonitoringIntenseCPU n "$iterations" "$threads"; } 2>> test_intense_cpu/runtimes.csv
+    {  numactl -C "0-${threads+1}" -l ./TestHardwareMonitoringIntenseCPU n "$iterations" "$threads"; } >> test_intense_cpu/runtimes.csv
 
         rm -rf test_intense_cpu/temp_output/*
     echo -n "yes;${iterations};${threads};${run};">>test_intense_cpu/runtimes.csv
-    { time numactl -C "${threads}" -l ./TestHardwareMonitoringIntenseCPU y "$iterations" "$threads"; } 2>> test_intense_cpu/runtimes.csv
+    { numactl -C "0-${threads+1}" -l ./TestHardwareMonitoringIntenseCPU y "$iterations" "$threads"; } >> test_intense_cpu/runtimes.csv
 
     rm -rf test_intense_cpu/temp_output/*
     fi

@@ -3,14 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Read the CSV data into a pandas DataFrame
-df = pd.read_csv("cmake-build-debug/test_intense_cpu_5/runtimes.csv", sep=";")
+df = pd.read_csv("final_cpu/runtimes.csv", sep=";")
 
 # Convert 'time' from string to float (replace comma with dot)
 #df['time'] = df['time'].str.replace(",", ".").astype(float)
 print(sum(df['time'])/(60))
 # Group the data by 'monitoring', 'iterations', and 'threads', and calculate median and std of 'time'
 grouped = df.groupby(['monitoring', 'iterations', 'threads']).agg(
-    median_time=('time', 'median'),
+    median_time=('time', 'mean'),
     std_time=('time', 'std')
 ).reset_index()
 
@@ -42,8 +42,6 @@ for i, iteration in enumerate(iterations):
     # Plotting the bars for the percentage differences
     ax.bar(index + i * bar_width, percentage_diff, bar_width, color=colors[i], label=f'{('Small Workload', 'Normal Workload', 'Big Workload')[i]}')
 
-    # Add error bars based on the standard deviations of "Yes" and "No"
-    # Add error bars based on the standard deviations of "Yes" and "No"
 # Set axis labels and title
 ax.set_xlabel('Threads')
 ax.set_ylabel('Time Difference (%)')
