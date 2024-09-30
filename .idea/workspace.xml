@@ -11,6 +11,8 @@
   </component>
   <component name="CMakeRunConfigurationManager">
     <generated>
+      <config projectName="HardwareMonitoring" targetName="TestHardwareMonitoringIntenseCPU" />
+      <config projectName="HardwareMonitoring" targetName="TestHardwareMonitoringLongTime" />
       <config projectName="HardwareMonitoring" targetName="HardwareMonitoring" />
       <config projectName="HardwareMonitoring" targetName="fmt" />
       <config projectName="HardwareMonitoring" targetName="TestHardwareMonitoring" />
@@ -22,23 +24,29 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0024c9b-f7ba-4460-9ec3-b2c26989761f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="f0024c9b-f7ba-4460-9ec3-b2c26989761f" name="Changes" comment="commit progress">
+      <change beforePath="$PROJECT_DIR$/.$Untitled Diagram.drawio.bkp" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Graph.h" beforeDir="false" afterPath="$PROJECT_DIR$/Graph.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IOFile.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/IOFile.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/.ninja_deps" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/.ninja_deps" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/.ninja_log" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/.ninja_log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeCache.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeCache.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/TargetDirectories.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/TargetDirectories.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/clion-Debug-log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/clion-Debug-log.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rules.ninja" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rules.ninja" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/TestHardwareMonitoring" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/TestHardwareMonitoring" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/Testing/Temporary/LastTest.log" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Testing/Temporary/LastTest.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/build.ninja" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/build.ninja" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/cmake_install.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/cmake_install.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/test_file.bin" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/test_file.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Untitled Diagram.drawio" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/architecture_flow_graph.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cpu_intense.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cpu_threads.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cpu_threads_100.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/create metric.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/final_cpu/runtimes.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Experiments/Experiment2/runtimes.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/intense_cpu.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Experiments/Experiment2/intense_cpu.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/intense_io.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/long_monitoring.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/metric tree.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/metric_timeline.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/metric_timeline.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_intense_cpu_paramiterized_test.sh" beforeDir="false" afterPath="$PROJECT_DIR$/Experiments/Experiment2/run_intense_cpu_paramiterized_test.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_intense_cpu_test.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_long_test.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/sample.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/show_intense_cpu_parameterized_plot.py" beforeDir="false" afterPath="$PROJECT_DIR$/Experiments/Experiment2/show_intense_cpu_parameterized_plot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/show_intense_cpu_parameterized_stddev_plot.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,22 +57,30 @@
     <option name="formatViaClangd" value="false" />
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="refactor_metric_calc" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///home/aleks-tu/Documents/tu_darmstadt/Monitoring/Experiments/Experiment0/WorkloadRunEverything.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///home/aleks-tu/Documents/tu_darmstadt/Monitoring/Experiments/Experiment0/WorkloadRunEverything.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Experiments/Experiment2/intense_cpu.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file:///usr/include/c++/11/bits/hashtable.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file:///usr/include/c++/11/bits/unordered_map.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file:///usr/include/c++/11/chrono" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file:///usr/include/c++/13/condition_variable" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProjectApplicationVersion">
     <option name="ide" value="CLion" />
@@ -83,30 +99,55 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "CMake Application.TestHardwareMonitoring.executor": "Debug",
+    "CMake Application.TestHardwareMonitoring.executor": "Run",
+    "CMake Application.TestHardwareMonitoringBigProcessingCPU.executor": "Run",
+    "CMake Application.TestHardwareMonitoringIntenseCPU.executor": "Run",
+    "CMake Application.TestHardwareMonitoringLongTime.executor": "Run",
+    "Python.show_intense_cpu_parameterized_plot.executor": "Run",
     "RunOnceActivity.RadMigrateCodeStyle": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "WebServerToolWindowPanel.toolwindow.highlight.mappings": "true",
+    "WebServerToolWindowPanel.toolwindow.highlight.symlinks": "true",
+    "WebServerToolWindowPanel.toolwindow.show.date": "false",
+    "WebServerToolWindowPanel.toolwindow.show.permissions": "false",
+    "WebServerToolWindowPanel.toolwindow.show.size": "false",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "FinalIOFile",
-    "last_opened_file_path": "/home/florian/Projects/workloads",
+    "database.data.extractors.current.export.id": "Semicolon-separated_id",
+    "database.data.extractors.current.id": "Semicolon-separated_id",
+    "git-widget-placeholder": "aleks__stash",
+    "last_opened_file_path": "/home/aleks-tu/Documents/tu_darmstadt/Monitoring/cmake-build-debug/test_intense_cpu",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "reference.idesettings.debugger.python",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="PyDebuggerOptionsProvider">
+    <option name="myPyQtBackend" value="pyqt6" />
+  </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/cmake-build-debug/test_intense_cpu" />
       <recent name="$PROJECT_DIR$" />
     </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/Experiments/Expirement 2" />
+      <recent name="$PROJECT_DIR$/cmake-build-debug" />
+    </key>
   </component>
-  <component name="RunManager" selected="CMake Application.TestHardwareMonitoring">
+  <component name="RunManager" selected="Python.show_intense_cpu_parameterized_plot">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="HardwareMonitoring" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="HardwareMonitoring" TARGET_NAME="HardwareMonitoring" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -117,7 +158,12 @@
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+    <configuration name="TestHardwareMonitoringIntenseCPU" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="HardwareMonitoring" TARGET_NAME="TestHardwareMonitoringIntenseCPU" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="HardwareMonitoring" RUN_TARGET_NAME="TestHardwareMonitoringIntenseCPU">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestHardwareMonitoringLongTime" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="HardwareMonitoring" TARGET_NAME="TestHardwareMonitoringLongTime" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="HardwareMonitoring" RUN_TARGET_NAME="TestHardwareMonitoringLongTime">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -127,11 +173,41 @@
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
+    <configuration name="show_intense_cpu_parameterized_plot" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="HardwareMonitoring" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Experiments/Expirement 2/show_intense_cpu_parameterized_plot.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="CMake Application.HardwareMonitoring" />
       <item itemvalue="CMake Application.TestHardwareMonitoring" />
+      <item itemvalue="CMake Application.TestHardwareMonitoringIntenseCPU" />
+      <item itemvalue="CMake Application.TestHardwareMonitoringLongTime" />
       <item itemvalue="CMake Application.fmt" />
+      <item itemvalue="Python.show_intense_cpu_parameterized_plot" />
     </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.show_intense_cpu_parameterized_plot" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -143,7 +219,66 @@
       <updated>1723742899718</updated>
       <workItem from="1723742902719" duration="4071000" />
       <workItem from="1723803449195" duration="4556000" />
+      <workItem from="1724224325162" duration="11239000" />
+      <workItem from="1724255819121" duration="989000" />
+      <workItem from="1724256816075" duration="3619000" />
+      <workItem from="1724319527813" duration="6096000" />
+      <workItem from="1724393336722" duration="2389000" />
+      <workItem from="1725097958876" duration="3850000" />
+      <workItem from="1725105426553" duration="1389000" />
+      <workItem from="1725132931144" duration="3302000" />
+      <workItem from="1725175037460" duration="4420000" />
+      <workItem from="1725179638918" duration="8000" />
+      <workItem from="1725371680240" duration="4353000" />
+      <workItem from="1725384688041" duration="2524000" />
+      <workItem from="1725444552462" duration="110000" />
+      <workItem from="1725444672382" duration="6212000" />
+      <workItem from="1725534557022" duration="3282000" />
+      <workItem from="1725549502749" duration="2370000" />
+      <workItem from="1725555383084" duration="4004000" />
+      <workItem from="1725955983065" duration="1356000" />
+      <workItem from="1725969265523" duration="95000" />
+      <workItem from="1725969370538" duration="1991000" />
+      <workItem from="1725971591474" duration="1703000" />
+      <workItem from="1726044806260" duration="8765000" />
+      <workItem from="1726068752262" duration="34000" />
+      <workItem from="1726081483368" duration="536000" />
+      <workItem from="1726115617884" duration="4258000" />
+      <workItem from="1726768482971" duration="1549000" />
+      <workItem from="1726774347388" duration="3000" />
+      <workItem from="1726774520173" duration="1310000" />
+      <workItem from="1727012770967" duration="4337000" />
+      <workItem from="1727075257632" duration="1419000" />
+      <workItem from="1727089674550" duration="3497000" />
+      <workItem from="1727100751431" duration="30000" />
+      <workItem from="1727111292081" duration="2247000" />
+      <workItem from="1727158406704" duration="4044000" />
+      <workItem from="1727165809625" duration="27000" />
+      <workItem from="1727168581920" duration="1000" />
+      <workItem from="1727169034076" duration="657000" />
+      <workItem from="1727169786845" duration="33000" />
+      <workItem from="1727169846422" duration="131000" />
+      <workItem from="1727170004268" duration="65000" />
+      <workItem from="1727170103536" duration="2263000" />
+      <workItem from="1727256794187" duration="6000" />
     </task>
+    <task id="LOCAL-00001" summary="make calculated metric iterable">
+      <option name="closed" value="true" />
+      <created>1724395701077</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1724395701077</updated>
+    </task>
+    <task id="LOCAL-00002" summary="commit progress">
+      <option name="closed" value="true" />
+      <created>1726149333593</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1726149333593</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -154,25 +289,24 @@
     <isAutomaticFoundErrors value="true" />
     <isAutomaticReloadCMake value="true" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="make calculated metric iterable" />
+    <MESSAGE value="commit progress" />
+    <option name="LAST_COMMIT_MESSAGE" value="commit progress" />
+  </component>
   <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/IOFile.cpp</url>
-          <line>82</line>
-          <option name="timeStamp" value="5" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/IOFile.cpp</url>
-          <line>85</line>
-          <option name="timeStamp" value="6" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/IOFile.cpp</url>
-          <line>91</line>
-          <option name="timeStamp" value="7" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="CMakeRunConfiguration">
+        <watch expression="res" />
+        <watch expression="line[9]" />
+        <watch expression="t[0][0]" />
+        <watch expression="t[0][0]" />
+        <watch expression="deviceData[1].second[3][4]" />
+      </configuration>
+    </watches-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

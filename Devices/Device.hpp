@@ -49,7 +49,7 @@ public:
 };
 
 template<typename ActualDevice>
-class Device : IDevice
+class Device : public IDevice
 {
 private:
     std::vector<Metric> allowedMetrics;

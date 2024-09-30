@@ -12,7 +12,6 @@ set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_STANDARD_REQUIRED YES)
 set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-11.8")
 set(CMAKE_C_COMPILER "gcc-14.2.0")
-set(CMAKE_CXX_COMPILER "/home/fhilprecht/gcc-14.2.0/bin/gcc-11.1")
 
 project(
         HardwareMonitoring
@@ -35,10 +34,10 @@ CPMAddPackage(
         OPTIONS "FMT_INSTALL YES"
 )
 
-add_library(HardwareMonitoring 
-        Devices/Device.cpp 
-        Devices/Device.hpp 
-        Core/Counter.cpp 
+add_library(HardwareMonitoring
+        Devices/Device.cpp
+        Devices/Device.hpp
+        Core/Counter.cpp
         Core/Counter.hpp
         Core/Output.hpp
         Core/Output.cpp
@@ -88,7 +87,7 @@ target_include_directories(HardwareMonitoring PUBLIC
     ${gflags_INCLUDE_DIRS}
 )
 
-target_link_libraries(HardwareMonitoring 
+target_link_libraries(HardwareMonitoring
     fmt::fmt
     ${CUDA_LIBRARIES}
     ${CUDA_DRIVER_LIBRARY}
@@ -98,13 +97,16 @@ target_link_libraries(HardwareMonitoring
     cudart
 )
 
+# Adding something we can run - Output name matches target name
 add_executable(WorkloadRunEverything Experiments/Experiment0/WorkloadRunEverything.cpp)
+add_executable(Experiment2_CPU_multithreaded_flops Experiments/Experiment2/intense_cpu.cpp)
 add_executable(Experiment3_IOFile_Raw Experiments/Experiment3/IOFile_Raw.cpp)
 add_executable(Experiment3_IOFile_Monitored  Experiments/Experiment3/IOFile_Monitored.cpp)
 add_executable(Experiment3_Perf_Raw  Experiments/Experiment3/Perf_Raw.cpp)
 add_executable(Experiment3_Perf_Monitored  Experiments/Experiment3/Perf_Monitored.cpp)
 
 target_link_libraries(WorkloadRunEverything HardwareMonitoring)
+target_link_libraries(Experiment2_CPU_multithreaded_flops HardwareMonitoring)
 target_link_libraries(Experiment3_IOFile_Raw HardwareMonitoring)
 target_link_libraries(Experiment3_IOFile_Monitored HardwareMonitoring)
 target_link_libraries(Experiment3_Perf_Raw HardwareMonitoring)
@@ -120,7 +122,7 @@ set_target_properties(WorkloadOlap_Blocking PROPERTIES
     CUDA_ARCHITECTURES "60;70;75;80"
 )
 
-target_link_libraries(WorkloadOlap_Blocking 
+target_link_libraries(WorkloadOlap_Blocking
     HardwareMonitoring
     ${CUDA_LIBRARIES}
     ${CUDA_DRIVER_LIBRARY}

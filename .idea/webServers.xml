@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="086f6d43-02ea-4158-a2b2-1efc1a1d3384" name="Tu Darmstadt Cluster">
+        <fileTransfer rootFolder="/home/astankoski" accessType="SFTP" host="c02.lab.dm.informatik.tu-darmstadt.de" port="22" sshConfigId="242b21f9-c509-4fba-9723-cd614ea65722" sshConfig="astankoski@c02.lab.dm.informatik.tu-darmstadt.de:22 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+    <groups>
+      <group>
+        <name>Tu Darmstadt</name>
+        <servers>
+          <name value="Tu Darmstadt Cluster" />
+        </servers>
+      </group>
+    </groups>
+  </component>
+</project>
